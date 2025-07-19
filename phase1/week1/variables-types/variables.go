@@ -14,7 +14,7 @@ var appName string = "Go Learning App"
 
 func main() {
 	fmt.Println("=== Variable Declarations ===")
-	
+
 	// TODO: Complete these functions to demonstrate variable declarations
 	basicDeclarations()
 	shortDeclarations()
@@ -22,7 +22,7 @@ func main() {
 	variableScope()
 	zeroValues()
 	typeInference()
-	
+
 	fmt.Println("\n📦 Variable declarations mastery complete!")
 }
 
@@ -34,18 +34,25 @@ func basicDeclarations() {
 	// - Use explicit types
 	// - Initialize with values
 	// - Show different syntax variations
-	
+
 	// Example:
 	// var name string = "Alice"
 	// var age int = 25
 	// var height float64 = 5.6
 	// var isStudent bool = true
-	
+
 	// Print the variables and their types
 	// fmt.Printf("Name: %s (type: %T)\n", name, name)
 	// fmt.Printf("Age: %d (type: %T)\n", age, age)
 	// fmt.Printf("Height: %.1f (type: %T)\n", height, height)
 	// fmt.Printf("Is student: %t (type: %T)\n", isStudent, isStudent)
+
+	var name string = "Alice"
+	var age int = 25
+	var height float64 = 5.6
+	var isStudent bool = true
+
+	fmt.Println(name, age, height, isStudent)
 }
 
 // TODO: Implement short variable declarations using :=
@@ -55,22 +62,34 @@ func shortDeclarations() {
 	// - Use := for short declarations
 	// - Let Go infer the types
 	// - Compare with Python variable assignment
-	
+
 	// Example:
 	// name := "Bob"        // string inferred
 	// age := 30           // int inferred
 	// salary := 50000.50  // float64 inferred
 	// isManager := false  // bool inferred
-	
+
 	// Print variables with type information
 	// fmt.Printf("Name: %s (type: %T)\n", name, name)
 	// fmt.Printf("Age: %d (type: %T)\n", age, age)
 	// fmt.Printf("Salary: %.2f (type: %T)\n", salary, salary)
 	// fmt.Printf("Is manager: %t (type: %T)\n", isManager, isManager)
-	
+
 	// Python comparison:
 	// In Python: name = "Bob"  # type determined at runtime
 	// In Go: name := "Bob"     # type determined at compile time
+
+	name := "Bob"
+	age := 30
+	salary := 50000.50
+	isManager := false // that's pretty high salary for a non-manager.
+
+	fmt.Println(name, age, salary, isManager)
+	fmt.Printf("Name: %s (type: %T)\n", name, name)
+	fmt.Printf("Salary: %f (type: %T)\n", salary, salary)
+	fmt.Printf("Is Manager: %t (type: %T)\n", isManager, isManager)
+	fmt.Printf("Age: %d (type: %T)\n", age, age)
+
 }
 
 // TODO: Implement multiple variable declarations
@@ -80,25 +99,46 @@ func multipleDeclarations() {
 	// - Declare multiple variables at once
 	// - Use different declaration styles
 	// - Show grouped declarations
-	
-	// Example styles:
-	// Style 1: Multiple var declarations
-	// var x, y, z int = 1, 2, 3
-	
-	// Style 2: Grouped var declarations
-	// var (
-	//     firstName string = "John"
-	//     lastName  string = "Doe"
-	//     age       int    = 35
-	// )
-	
-	// Style 3: Multiple short declarations
-	// a, b, c := 10, 20, 30
-	
-	// Print all variables
-	// fmt.Printf("x: %d, y: %d, z: %d\n", x, y, z)
-	// fmt.Printf("Full name: %s %s, age: %d\n", firstName, lastName, age)
-	// fmt.Printf("a: %d, b: %d, c: %d\n", a, b, c)
+
+	var x, y, z int = 1, 2, 3
+	var (
+		firstName string  = "John"
+		salary    float64 = 50000.50
+		isManager bool    = false
+	)
+
+	fmt.Printf("x: %d (type: %T)\n", x, x)
+
+	for _, v := range []any{x, y, z, firstName, salary, isManager} {
+		fmt.Printf("%v (type: %T)\n", v, v)
+	}
+
+	var myAny any
+
+	myAny = "hello"
+	fmt.Printf("myAny: %v (type: %T)\n", myAny, myAny)
+
+	myAny = 10
+	fmt.Printf("myAny: %v (type: %T)\n", myAny, myAny)
+
+	myAny = true
+	fmt.Printf("myAny: %v (type: %T)\n", myAny, myAny)
+
+	myAny = 10.5
+	fmt.Printf("myAny: %v (type: %T)\n", myAny, myAny)
+
+	myAny = []any{1, 2, 3}
+	fmt.Printf("myAny: %v (type: %T)\n", myAny, myAny)
+
+	myAny = map[string]any{"name": "John", "age": 30}
+	fmt.Printf("myAny: %v (type: %T)\n", myAny, myAny)
+
+	myAny = struct {
+		name string
+		age  int
+	}{"John", 30}
+	fmt.Printf("myAny: %v (type: %T)\n", myAny, myAny)
+
 }
 
 // TODO: Implement variable scope demonstration
@@ -109,27 +149,27 @@ func variableScope() {
 	// - Demonstrate block scope
 	// - Access package-level variables
 	// - Show variable shadowing
-	
+
 	// Function-level variable
 	functionVar := "I'm function scoped"
-	
+
 	// Block scope example
 	if true {
 		blockVar := "I'm block scoped"
 		// Variable shadowing
 		functionVar := "I shadow the function variable"
-		
+
 		fmt.Printf("Inside block - blockVar: %s\n", blockVar)
 		fmt.Printf("Inside block - functionVar: %s\n", functionVar)
 	}
-	
+
 	// blockVar is not accessible here
 	fmt.Printf("Outside block - functionVar: %s\n", functionVar)
-	
+
 	// Access package-level variables
 	fmt.Printf("Global counter: %d\n", globalCounter)
 	fmt.Printf("App name: %s\n", appName)
-	
+
 	// Modify global variable
 	globalCounter++
 	fmt.Printf("Incremented counter: %d\n", globalCounter)
@@ -142,21 +182,31 @@ func zeroValues() {
 	// - Declare variables without initialization
 	// - Show zero values for different types
 	// - Compare with Python's None/default values
-	
+
 	// Example:
 	// var num int
 	// var text string
 	// var flag bool
 	// var decimal float64
-	
+
 	// fmt.Printf("Zero int: %d\n", num)
 	// fmt.Printf("Zero string: '%s'\n", text)
 	// fmt.Printf("Zero bool: %t\n", flag)
 	// fmt.Printf("Zero float64: %f\n", decimal)
-	
+
 	// Python comparison:
 	// In Python: variables must be assigned before use
 	// In Go: variables have zero values by default
+
+	var num int
+	var text string
+	var flag bool
+	var decimal float64
+
+	fmt.Printf("Zero int: %d\n", num)
+	fmt.Printf("Zero string: %s\n", text)
+	fmt.Printf("Zero bool: %t\n", flag)
+	fmt.Printf("Zero float64: %f\n", decimal)
 }
 
 // TODO: Implement type inference demonstration
@@ -166,20 +216,28 @@ func typeInference() {
 	// - Show how Go infers types
 	// - Use reflect package to show actual types
 	// - Compare different literal types
-	
+
 	// Example:
 	// a := 42          // int
 	// b := 42.0        // float64
 	// c := "hello"     // string
 	// d := true        // bool
 	// e := 'A'         // rune (int32)
-	
+
 	// Use reflection to show types
 	// fmt.Printf("a = %v, type: %s\n", a, reflect.TypeOf(a))
 	// fmt.Printf("b = %v, type: %s\n", b, reflect.TypeOf(b))
 	// fmt.Printf("c = %v, type: %s\n", c, reflect.TypeOf(c))
 	// fmt.Printf("d = %v, type: %s\n", d, reflect.TypeOf(d))
 	// fmt.Printf("e = %v, type: %s\n", e, reflect.TypeOf(e))
+
+	a := 10
+	// b := 10.5
+	// c := "hello"
+	// d := true
+	// e := 'A'
+
+	fmt.Printf("a =%v, type: %T\n, reflect.TypeOf(a) = %s\n", a, a, reflect.TypeOf(a))
 }
 
 // 🎯 LEARNING GOALS:
@@ -220,4 +278,4 @@ func typeInference() {
 // 2. Try variable shadowing in nested blocks
 // 3. Access global variables from functions
 // 4. Use type inference with different literals
-// 5. Compare Go's approach with Python's dynamic typing 
+// 5. Compare Go's approach with Python's dynamic typing

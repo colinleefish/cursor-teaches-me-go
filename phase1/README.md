@@ -88,10 +88,10 @@ Mark your progress as you complete each section:
 - [x] Basics: Installation & Setup ✅
 - [x] Basics: Hello World variations ✅
 - [x] Basics: Go commands (build, run, fmt) ✅
-- [ ] Variables: Declaration patterns
-- [ ] Variables: Type system
-- [ ] Variables: Basic operations
-- [ ] **Week 1 Quiz**: Score ___/100
+- [x] Variables: Declaration patterns ✅
+- [x] Variables: Type system ✅
+- [x] Variables: Basic operations ✅
+- [x] **Week 1 Quiz**: Available ✅
 
 ### Week 2 Progress
 - [ ] Control Flow: if/else statements
