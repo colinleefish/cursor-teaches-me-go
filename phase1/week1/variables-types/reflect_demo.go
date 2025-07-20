@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func main() {
+func exerciseReflection() {
 	fmt.Println("🎯 Go Reflection (reflect) Demo")
 	fmt.Println("==============================\n")
 
