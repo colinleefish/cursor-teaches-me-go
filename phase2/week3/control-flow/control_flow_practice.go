@@ -12,21 +12,46 @@ func exerciseIfElse() {
 
 	// TODO: Create a variable 'age' with value 25
 	// YOUR CODE HERE
+	age := 25
 
 	// TODO: Check if age is >= 18 and print "Adult" or "Minor"
 	// Hint: No parentheses needed around condition
 	// YOUR CODE HERE
+	if age >= 18 {
+		fmt.Println("Adult")
+	} else {
+		fmt.Println("Minor")
+	}
 
 	// TODO: Create a score variable with value 85
 	// YOUR CODE HERE
+	score := 85
 
 	// TODO: Use if/else if/else to print grade based on score:
 	// 90-100: "A", 80-89: "B", 70-79: "C", 60-69: "D", below 60: "F"
 	// YOUR CODE HERE
 
+	if score >= 90 {
+		fmt.Println("A")
+	} else if score >= 80 {
+		fmt.Println("B")
+	} else if score >= 70 {
+		fmt.Println("C")
+	} else if score >= 60 {
+		fmt.Println("D")
+	} else {
+		fmt.Println("F")
+	}
+
 	// TODO: Use if with initialization: if x := getValue(); x > 50 { ... }
 	// Create a function getValue() that returns a random number 1-100
 	// YOUR CODE HERE
+
+	if x := getValue(); x > 50 {
+		fmt.Println("I'm more that 50")
+	} else {
+		fmt.Println("I'm less than 50")
+	}
 
 	fmt.Printf("Random value check result\n")
 }
@@ -34,6 +59,9 @@ func exerciseIfElse() {
 // TODO: Implement getValue() function for the above exercise
 // Hint: Use rand.Intn(100) + 1
 // YOUR CODE HERE
+func getValue() int {
+	return rand.Intn(100) + 1
+}
 
 // Exercise 2: For Loop Patterns
 func exerciseForLoops() {
@@ -43,33 +71,70 @@ func exerciseForLoops() {
 	// Print numbers 1 to 5
 	fmt.Println("C-style loop (1-5):")
 	// YOUR CODE HERE
+	for i := 0; i < 6; i++ {
+		fmt.Println(i)
+	}
 
 	// TODO: Pattern 2 - While-style loop
 	// Print numbers that double each time: 1, 2, 4, 8, 16 (stop before 32)
 	fmt.Println("While-style loop (powers of 2):")
 	// YOUR CODE HERE
 
+	// Option 1: Bit shifting (fastest for powers of 2)
+	j := 0
+	for 1<<j < 32 {
+		fmt.Println(1 << j)
+		j++
+	}
+
 	// TODO: Pattern 3 - Infinite loop with break
 	// Print numbers 1-3, then break
 	fmt.Println("Infinite loop with break:")
 	// YOUR CODE HERE
+	i := 1
+	for {
+		fmt.Println(i)
+		i++
+		if i > 3 {
+			break
+		}
+	}
 
 	// TODO: Pattern 4 - Range loop over slice
 	// Create a slice of strings and print index and value
 	colors := []string{"red", "green", "blue"}
 	fmt.Println("Range loop over slice:")
-	_ = colors // Remove this line and use colors in your loop
+	// _ = colors // Remove this line and use colors in your loop
 	// YOUR CODE HERE
+	for _, color := range colors {
+		fmt.Println(color)
+	}
 
 	// TODO: Pattern 5 - Range loop over map
 	// Create a map of student names to grades and print them
 	fmt.Println("Range loop over map:")
 	// YOUR CODE HERE
+	grades := make(map[string]int)
+	grades["Alice"] = 75
+	grades["Bob"] = 65
+	grades["Colin"] = 55
+
+	for name, grade := range grades {
+		fmt.Printf("%s got %v\n", name, grade)
+	}
 
 	// TODO: Pattern 6 - Range loop with continue
 	// Skip printing even numbers from 1-10
 	fmt.Println("Loop with continue (odd numbers only):")
 	// YOUR CODE HERE
+	k := 0
+	for k < 10 {
+		k++
+		if k%2 == 0 {
+			continue
+		}
+		fmt.Println(k)
+	}
 }
 
 // Exercise 3: Switch Statements
