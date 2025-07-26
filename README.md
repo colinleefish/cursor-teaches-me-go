@@ -119,11 +119,11 @@ By the end of this roadmap, you'll be able to:
 **Goal: Master Go's control structures, functions, and error handling patterns**
 
 #### 2.1 Control Flow Structures
-- [ ] `if/else` statements (no parentheses needed!)
-- [ ] `for` loops (the only loop in Go) - multiple patterns
-- [ ] `switch` statements and type switches
-- [ ] `defer` keyword (cleanup mechanism)
-- [ ] `goto` and labels (rare but useful)
+- [x] `if/else` statements (no parentheses needed!)
+- [x] `for` loops (the only loop in Go) - multiple patterns
+- [x] `switch` statements and type switches
+- [x] `defer` keyword (cleanup mechanism)
+- [x] `goto` and labels (rare but useful)
 
 **Go's Unique Control Flow Features:**
 ```go

@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
+	"strings"
 )
 
 // Exercise 1: Basic Functions with Multiple Returns
@@ -36,16 +38,17 @@ func exerciseBasicFunctions() {
 
 // TODO: Implement add function here
 // YOUR CODE HERE
-func add(a, b int) int {
-	// YOUR CODE HERE
-	return 0 // Replace this
-}
+// func add(a, b int) int {
+// 	return a + b
+// }
 
 // TODO: Implement divide function here
 // YOUR CODE HERE
 func divide(a, b float64) (float64, error) {
-	// YOUR CODE HERE
-	return 0, errors.New("not implemented") // Replace this
+	if b == 0 {
+		return 0, errors.New("division by zero")
+	}
+	return a / b, nil
 }
 
 // Exercise 2: Named Returns
@@ -84,14 +87,32 @@ func exerciseNamedReturns() {
 // YOUR CODE HERE
 func calculateStats(numbers []int) (min, max, avg int) {
 	// YOUR CODE HERE
-	return 0, 0, 0 // Replace this
+	min, max, sum := numbers[0], numbers[0], 0
+	for _, n := range numbers {
+		if n < min {
+			min = n
+		}
+		if n > max {
+			max = n
+		}
+		sum += n
+	}
+	return min, max, sum / len(numbers) // min, max, avg
 }
 
 // TODO: Implement validateUser function with named returns
 // YOUR CODE HERE
 func validateUser(name, email string) (isValid bool, reason string) {
 	// YOUR CODE HERE
-	return false, "not implemented" // Replace this
+	switch {
+	case name == "" && email == "":
+		return false, "Name and email are empty"
+	case name == "":
+		return false, "Name is empty"
+	case email == "":
+		return false, "Email is empty"
+	}
+	return true, ""
 }
 
 // Exercise 3: Variadic Functions
@@ -128,21 +149,38 @@ func exerciseVariadicFunctions() {
 // YOUR CODE HERE
 func sum(numbers ...int) int {
 	// YOUR CODE HERE
-	return 0 // Replace this
+	sum := 0
+	for _, n := range numbers {
+		sum += n
+	}
+	return sum
 }
 
 // TODO: Implement concatenate variadic function
 // YOUR CODE HERE
 func concatenate(separator string, words ...string) string {
 	// YOUR CODE HERE
-	return "" // Replace this
+	concat := ""
+	for i, w := range words {
+		if i > 0 {
+			concat += separator
+		}
+		concat += w
+	}
+	return concat
 }
 
 // TODO: Implement findMax variadic function
 // YOUR CODE HERE
 func findMax(first int, rest ...int) int {
 	// YOUR CODE HERE
-	return 0 // Replace this
+	max := first
+	for _, n := range rest {
+		if n > max {
+			max = n
+		}
+	}
+	return max
 }
 
 // Exercise 4: Anonymous Functions and Closures
@@ -153,7 +191,7 @@ func exerciseAnonymousFunctions() {
 	// YOUR CODE HERE
 	square := func(x int) int {
 		// YOUR CODE HERE
-		return 0 // Replace this
+		return x * x
 	}
 
 	fmt.Printf("Square of 5: %d\n", square(5))
@@ -163,9 +201,11 @@ func exerciseAnonymousFunctions() {
 	// YOUR CODE HERE
 	counter := func() func() int {
 		// YOUR CODE HERE
+		count := 0
 		return func() int {
 			// YOUR CODE HERE
-			return 0 // Replace this
+			count++
+			return count
 		}
 	}()
 
@@ -176,7 +216,9 @@ func exerciseAnonymousFunctions() {
 	// TODO: Create a function that returns a multiplier closure
 	createMultiplier := func(factor int) func(int) int {
 		// YOUR CODE HERE
-		return nil // Replace this
+		return func(x int) int {
+			return x * factor
+		}
 	}
 
 	double := createMultiplier(2)
@@ -188,6 +230,16 @@ func exerciseAnonymousFunctions() {
 	// TODO: Use an anonymous function to filter even numbers
 	numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	var evens []int
+	filter := func(ns []int) []int {
+		even := []int{}
+		for _, n := range ns {
+			if n%2 == 0 {
+				even = append(even, n)
+			}
+		}
+		return even
+	}
+	evens = filter(numbers)
 
 	// Create and immediately call an anonymous function
 	// YOUR CODE HERE
@@ -247,11 +299,12 @@ type Circle struct {
 // YOUR CODE HERE
 func (c Circle) Area() float64 {
 	// YOUR CODE HERE - use math.Pi * r * r
-	return 0 // Replace this
+	return math.Pi * c.Radius * c.Radius
 }
 
 func (c *Circle) Scale(factor float64) {
 	// YOUR CODE HERE
+	c.Radius *= factor
 }
 
 // TODO: Define Person struct
@@ -265,11 +318,12 @@ type Person struct {
 // YOUR CODE HERE
 func (p Person) String() string {
 	// YOUR CODE HERE
-	return "" // Replace this
+	return fmt.Sprintf("%s (%d)", p.Name, p.Age)
 }
 
 func (p *Person) Birthday() {
 	// YOUR CODE HERE
+	p.Age++
 }
 
 // Exercise 6: Function Types and Higher-Order Functions
@@ -328,45 +382,65 @@ type MathOperation func(int, int) int
 
 // TODO: Implement functions that match MathOperation
 // YOUR CODE HERE
+func add(a, b int) int {
+	// YOUR CODE HERE
+	return a + b
+}
+
 func multiply(a, b int) int {
 	// YOUR CODE HERE
-	return 0 // Replace this
+	return a * b
 }
 
 // TODO: Implement calculate function
 // YOUR CODE HERE
 func calculate(a, b int, op MathOperation) int {
 	// YOUR CODE HERE
-	return 0 // Replace this
+	return op(a, b)
 }
 
 // TODO: Implement applyToAll function
 // YOUR CODE HERE
 func applyToAll(numbers []int, fn func(int) int) []int {
 	// YOUR CODE HERE
-	return nil // Replace this
+	results := []int{}
+	for _, n := range numbers {
+		results = append(results, fn(n))
+	}
+	return results
 }
 
 // Exercise 7: Real-World Function Patterns
 func exerciseRealWorld() {
 	fmt.Println("\n=== Exercise 7: Real-World Patterns ===")
 
-	// TODO: Create a function processData(data []string, validator func(string) bool, transformer func(string) string) []string
+	// TODO: Create a function processData(data []string, validator
+	// func(string) bool, transformer func(string) string) []string
 	// Filter data using validator, then transform valid items
 	// YOUR CODE HERE
 
 	data := []string{"hello", "", "world", "go", "", "programming"}
 
+	processData := func(data []string, validator func(string) bool, transformer func(string) string) []string {
+		filtered := []string{}
+
+		for _, item := range data {
+			if validator(item) {
+				filtered = append(filtered, transformer(item))
+			}
+		}
+
+		return filtered
+	}
+
 	// Validator: non-empty strings
 	isNonEmpty := func(s string) bool {
-		// YOUR CODE HERE
-		return false // Replace this
+		return s != ""
 	}
 
 	// Transformer: uppercase
 	toUpper := func(s string) string {
-		// YOUR CODE HERE
-		return "" // Replace this
+		return strings.ToUpper(s)
 	}
 
 	processed := processData(data, isNonEmpty, toUpper)
@@ -376,6 +450,14 @@ func exerciseRealWorld() {
 	// TODO: Create a function retry(operation func() error, maxAttempts int) error
 	// Retry an operation up to maxAttempts times
 	// YOUR CODE HERE
+	retry := func(operation func() error, maxAttempts int) error {
+		for i := 0; i < maxAttempts; i++ {
+			if err := operation(); err == nil {
+				return nil
+			}
+		}
+		return errors.New("operation failed after max attempts")
+	}
 
 	// Simulate a flaky operation
 	attemptCount := 0
@@ -397,6 +479,20 @@ func exerciseRealWorld() {
 	// TODO: Create a function memoize(fn func(int) int) func(int) int
 	// Return a memoized version of the function (caches results)
 	// YOUR CODE HERE
+	type IntIntFunc func(int) int
+
+	memoize := func(fn IntIntFunc) IntIntFunc {
+		cache := make(map[int]int)
+
+		return func(n int) int {
+			if val, ok := cache[n]; ok {
+				return val
+			}
+			result := fn(n)
+			cache[n] = result
+			return result
+		}
+	}
 
 	// Expensive fibonacci function
 	var fibonacci func(int) int
@@ -416,27 +512,6 @@ func exerciseRealWorld() {
 	fmt.Println("Second call to memoized fibonacci(5):")
 	result2 := memoizedFib(5)
 	fmt.Printf("Result: %d\n", result2)
-}
-
-// TODO: Implement processData function
-// YOUR CODE HERE
-func processData(data []string, validator func(string) bool, transformer func(string) string) []string {
-	// YOUR CODE HERE
-	return nil // Replace this
-}
-
-// TODO: Implement retry function
-// YOUR CODE HERE
-func retry(operation func() error, maxAttempts int) error {
-	// YOUR CODE HERE
-	return errors.New("not implemented") // Replace this
-}
-
-// TODO: Implement memoize function
-// YOUR CODE HERE
-func memoize(fn func(int) int) func(int) int {
-	// YOUR CODE HERE
-	return fn // Replace this with proper memoization
 }
 
 // Main function to run all exercises

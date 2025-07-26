@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -146,12 +149,32 @@ func exerciseSwitchStatements() {
 	fmt.Printf("Day: %s - ", day)
 	// Switch on day and print if it's "Weekday" or "Weekend"
 	// YOUR CODE HERE
+	switch day {
+	case "Monday", "Tuesday", "Wednesday", "Thursday", "Friday":
+		fmt.Println("Weekday")
+	case "Saturday", "Sunday":
+		fmt.Println("Weekend")
+	default:
+		fmt.Println("Invalid day")
+	}
 
 	// TODO: Switch with multiple values
 	month := "December"
 	fmt.Printf("Month: %s - ", month)
 	// Switch to print season: Dec/Jan/Feb = "Winter", etc.
 	// YOUR CODE HERE
+	switch month {
+	case "December", "January", "February":
+		fmt.Println("Winter")
+	case "March", "April", "May":
+		fmt.Println("Spring")
+	case "June", "July", "August":
+		fmt.Println("Summer")
+	case "September", "October", "November":
+		fmt.Println("Autumn")
+	default:
+		fmt.Println("Invalid month")
+	}
 
 	// TODO: Switch without expression (replaces if/else chain)
 	score := 85
@@ -159,11 +182,35 @@ func exerciseSwitchStatements() {
 	// Use switch without expression to determine grade
 	// YOUR CODE HERE
 
+	switch {
+	case score >= 90:
+		fmt.Println("A")
+	case score >= 80:
+		fmt.Println("B")
+	case score >= 70:
+		fmt.Println("C")
+	case score >= 60:
+		fmt.Println("D")
+	default:
+		fmt.Println("F")
+	}
+
 	// TODO: Type switch (advanced)
 	// Create an interface{} variable and use type switch
 	var value interface{} = 42
 	fmt.Printf("Value: %v - Type: ", value)
 	// YOUR CODE HERE
+
+	switch v := value.(type) {
+	case int:
+		fmt.Printf("Value: %d, Type: %T\n", v, v)
+	case string:
+		fmt.Printf("Value: %s, Type: %T\n", v, v)
+	case bool:
+		fmt.Printf("Value: %t, Type: %T\n", v, v)
+	default:
+		fmt.Println("Unknown type")
+	}
 }
 
 // Exercise 4: Defer Statements
@@ -174,13 +221,36 @@ func exerciseDefer() {
 	fmt.Println("Defer execution order:")
 	// YOUR CODE HERE - Add 3 defer statements that print "First", "Second", "Third"
 
+	defer fmt.Println("First")
+	defer fmt.Println("Second")
+	defer fmt.Println("Third")
+
 	// TODO: Defer with variables - capture current value vs reference
 	fmt.Println("Defer with variables:")
 	// YOUR CODE HERE
+	x := 10
+	defer fmt.Println(x)
+	x = 20
+	fmt.Println(x)
 
 	// TODO: Defer for resource cleanup simulation
 	fmt.Println("Resource cleanup simulation:")
 	// YOUR CODE HERE - simulate opening/closing a file or connection
+
+	file, err := os.Open("README.md")
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+	content, err := io.ReadAll(file)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	fmt.Println(string(content)[:100])
+	fmt.Println("File closed")
 
 	fmt.Println("Function ending...")
 }
@@ -200,17 +270,55 @@ func exerciseRealWorld() {
 	fmt.Printf("Target: %d, Guess: %d - ", target, guess)
 	// YOUR CODE HERE - Use if/else to check if correct, too high, or too low
 
+	if guess > target {
+		fmt.Println("Too high")
+	} else if guess < target {
+		fmt.Println("Too low")
+	} else {
+		fmt.Println("Correct")
+	}
+
 	// TODO: Grade calculator with validation
 	// Calculate average and assign letter grade
 	scores := []int{85, 92, 78, 88, 95}
 	fmt.Printf("Scores: %v - ", scores)
 	// YOUR CODE HERE - Calculate average using loop, then assign grade using switch
+	sum := 0
+	for _, score := range scores {
+		sum += score
+	}
+	avg := sum / len(scores)
+
+	switch {
+	case avg >= 90:
+		fmt.Println("A")
+	case avg >= 80:
+		fmt.Println("B")
+	case avg >= 70:
+		fmt.Println("C")
+	case avg >= 60:
+		fmt.Println("D")
+	default:
+		fmt.Println("F")
+	}
 
 	// TODO: FizzBuzz (classic programming problem)
 	// Print numbers 1-15, but replace multiples of 3 with "Fizz",
 	// multiples of 5 with "Buzz", and multiples of both with "FizzBuzz"
 	fmt.Println("FizzBuzz (1-15):")
 	// YOUR CODE HERE
+	for i := 1; i <= 15; i++ {
+		switch {
+		case i%3 == 0 && i&5 == 0:
+			fmt.Println("FizzBuzz")
+		case i%3 == 0:
+			fmt.Println("Fizz")
+		case i%5 == 0:
+			fmt.Println("Buzz")
+		default:
+			fmt.Println(i)
+		}
+	}
 
 	// TODO: Input validation pattern
 	// Validate an email address (simple check for @ symbol)
@@ -218,6 +326,14 @@ func exerciseRealWorld() {
 	fmt.Println("Email validation:")
 	_ = emails // Remove this line and use emails in your loop
 	// YOUR CODE HERE - Use loop and if/else to validate each email
+
+	for _, email := range emails {
+		if strings.Contains(email, "@") {
+			fmt.Println(email, "is valid")
+		} else {
+			fmt.Println(email, "is invalid")
+		}
+	}
 }
 
 // Exercise 6: Combining Control Flow
@@ -231,17 +347,56 @@ func exerciseCombined() {
 	_ = options // Remove this line and use options in your implementation
 	// YOUR CODE HERE - Display menu options and simulate user selection
 
+	for _, o := range options {
+		fmt.Println(o)
+		fmt.Println("Enter your choice:")
+		var choice string
+		fmt.Scanln(&choice)
+		switch choice {
+		case "View Profile":
+			fmt.Println("Viewing profile")
+		case "Edit Settings":
+			fmt.Println("Editing settings")
+		case "Logout":
+			fmt.Println("Logging out")
+		case "Exit":
+			fmt.Println("Exiting")
+		default:
+			fmt.Println("Invalid choice")
+		}
+	}
+
 	// TODO: Data processing pipeline
 	// Process a slice of numbers: filter evens, square them, sum the result
 	numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	fmt.Printf("Input numbers: %v\n", numbers)
 
 	// YOUR CODE HERE - Use loops and conditions to process the data
+	sum := 0
+	for _, n := range numbers {
+		if n%2 == 0 {
+			sum += n * n
+		}
+	}
+	fmt.Printf("Sum of squared evens: %d\n", sum)
 
 	// TODO: Error simulation with goto (just to show it exists)
 	// Create a retry mechanism using goto (though this is not recommended)
 	fmt.Println("Goto example (not recommended):")
 	// YOUR CODE HERE
+
+	attempts := 0
+
+retry:
+	attempts++
+	fmt.Println("Attempt: ", attempts)
+	success := rand.Intn(2) == 0
+	if !success {
+		fmt.Println("Failed")
+		goto retry
+	}
+
+	fmt.Println("Success")
 }
 
 // Main function to run all exercises
