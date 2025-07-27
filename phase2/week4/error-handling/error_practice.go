@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Exercise 1: Basic Error Handling
@@ -14,6 +15,14 @@ func exerciseBasicErrors() {
 	// TODO: Create a function parseAge(s string) (int, error)
 	// Parse string to int, return error if invalid or negative
 	// YOUR CODE HERE
+
+	parseAge := func(s string) (int, error) {
+		age, err := strconv.Atoi(s)
+		if err != nil || age < 0 {
+			return 0, errors.New("invalid age")
+		}
+		return age, nil
+	}
 
 	// Test cases
 	testCases := []string{"25", "-5", "abc", "30", ""}
@@ -31,6 +40,13 @@ func exerciseBasicErrors() {
 	// Return error for division by zero
 	// YOUR CODE HERE
 
+	safeDivide := func(a, b float64) (float64, error) {
+		if b == 0 {
+			return 0, errors.New("division by zero")
+		}
+		return a / b, nil
+	}
+
 	fmt.Println("\nDivision tests:")
 	divisionTests := [][2]float64{{10, 2}, {15, 3}, {8, 0}, {-6, 2}}
 
@@ -42,21 +58,6 @@ func exerciseBasicErrors() {
 			fmt.Printf("safeDivide(%.1f, %.1f) -> Result: %.2f\n", test[0], test[1], result)
 		}
 	}
-}
-
-// TODO: Implement parseAge function
-// YOUR CODE HERE
-func parseAge(s string) (int, error) {
-	// YOUR CODE HERE
-	_ = strconv.Atoi // Remove this line when implementing
-	return 0, errors.New("not implemented")
-}
-
-// TODO: Implement safeDivide function
-// YOUR CODE HERE
-func safeDivide(a, b float64) (float64, error) {
-	// YOUR CODE HERE
-	return 0, errors.New("not implemented")
 }
 
 // Exercise 2: Custom Error Types
@@ -119,8 +120,7 @@ type ValidationError struct {
 }
 
 func (e ValidationError) Error() string {
-	// YOUR CODE HERE
-	return fmt.Sprintf("%s: %s", e.Field, e.Message)
+	return fmt.Sprintf("validation error: %s: %s", e.Field, e.Message)
 }
 
 // TODO: Define AuthError struct and implement Error() method
@@ -139,15 +139,34 @@ func (e AuthError) Error() string {
 // YOUR CODE HERE
 func validateUser(name, email string) error {
 	// YOUR CODE HERE
-	_ = strings.Contains // Remove this line when implementing
-	return errors.New("not implemented")
+	// _ = strings.Contains // Remove this line when implementing
+	// return errors.New("not implemented")
+
+	if name == "" {
+		return ValidationError{Field: "name", Message: "empty name"}
+	}
+
+	if !strings.Contains(email, "@") {
+		return ValidationError{Field: "email", Message: "invalid email"}
+	}
+
+	return nil
 }
 
 // TODO: Implement authenticateUser function
 // YOUR CODE HERE
 func authenticateUser(token string) error {
-	// YOUR CODE HERE
-	return errors.New("not implemented")
+
+	if token == "" {
+		return AuthError{Code: "empty", Message: "empty token"}
+	}
+	if strings.Contains(token, "invalid") {
+		return AuthError{Code: "invalid", Message: "invalid token"}
+	}
+	if strings.Contains(token, "expired") {
+		return AuthError{Code: "expired", Message: "expired token"}
+	}
+	return nil
 }
 
 // Exercise 3: Error Wrapping and Unwrapping
@@ -170,31 +189,82 @@ func exerciseErrorWrapping() {
 
 		// TODO: Use errors.Unwrap to get the original error
 		// YOUR CODE HERE
+		unwrappedErr := errors.Unwrap(err)
+		fmt.Printf("Unwrapped error: %v\n", unwrappedErr)
 
 		// TODO: Use errors.Is to check for specific error types
 		// YOUR CODE HERE
+		if errors.Is(err, ConfigError{code: "empty"}) {
+			fmt.Println("Empty filename error")
+		}
+		if errors.Is(err, ConfigError{code: "invalid_suffix"}) {
+			fmt.Println("Invalid file extension error")
+		}
 
 		// TODO: Use errors.As to extract custom error types
 		// YOUR CODE HERE
+		var configErr ConfigError
+		if errors.As(err, &configErr) {
+			switch configErr.code {
+			case "empty":
+				fmt.Println("Empty filename error")
+			case "invalid_suffix":
+				fmt.Println("Invalid file extension error")
+			}
+		}
+		fmt.Printf("Unwrapped error: %v\n", unwrappedErr)
 	}
+}
 
-	// Demonstrate error chain
-	fmt.Println("\nError wrapping chain:")
-	// YOUR CODE HERE - create a chain of wrapped errors
+type ConfigError struct {
+	code string
+	msg  string
+}
+
+func (e ConfigError) Error() string {
+	return fmt.Sprintf("config error [%s]: %s", e.code, e.msg)
 }
 
 // TODO: Implement readConfig function
 // YOUR CODE HERE
 func readConfig(filename string) error {
 	// YOUR CODE HERE
-	return errors.New("not implemented")
+	if filename == "" {
+		return fmt.Errorf(
+			"read config error: %w",
+			ConfigError{code: "empty", msg: "empty filename"},
+		)
+	}
+
+	if !strings.HasSuffix(filename, ".json") {
+		return fmt.Errorf(
+			"read config error: %w",
+			ConfigError{code: "invalid_suffix", msg: "not json"},
+		)
+	}
+
+	return nil
 }
 
 // TODO: Implement processConfig function
 // YOUR CODE HERE
 func processConfig() error {
 	// YOUR CODE HERE
-	return readConfig("config.json")
+	err := readConfig("config")
+	if err != nil {
+		var configErr ConfigError
+		if errors.As(err, &configErr) {
+			switch configErr.code {
+			case "empty":
+				return fmt.Errorf("process config error: %w", err)
+			case "invalid_suffix":
+				return fmt.Errorf("process config error: %w", err)
+			}
+		}
+		return fmt.Errorf("process config error: %w", err)
+	}
+
+	return nil
 }
 
 // Exercise 4: Error Handling Strategies
@@ -204,17 +274,17 @@ func exerciseErrorStrategies() {
 	// Strategy 1: Fail Fast
 	// TODO: Create a function validateInputs(data []string) error
 	// Return immediately on first validation error
-	// YOUR CODE HERE
+	// i implemented this in the validateInputs function
 
 	// Strategy 2: Collect All Errors
 	// TODO: Create a function validateAllInputs(data []string) []error
 	// Validate all inputs and return all errors found
-	// YOUR CODE HERE
+	// i implemented this in the validateAllInputs function
 
 	// Strategy 3: Retry with Backoff
 	// TODO: Create a function retryOperation(op func() error, maxRetries int) error
 	// Retry an operation with increasing delay
-	// YOUR CODE HERE
+	// i implemented this in the retryOperation function
 
 	// Test different strategies
 	testData := []string{"valid", "", "invalid@", "good@example.com", "bad-format"}
@@ -257,21 +327,49 @@ func exerciseErrorStrategies() {
 // YOUR CODE HERE
 func validateInputs(data []string) error {
 	// YOUR CODE HERE
-	return errors.New("not implemented")
+	for _, input := range data {
+		if input == "" {
+			return errors.New("empty input")
+		}
+		if input == "invalid" {
+			return errors.New("invalid input")
+		}
+	}
+	return nil
 }
 
 // TODO: Implement validateAllInputs function
 // YOUR CODE HERE
 func validateAllInputs(data []string) []error {
 	// YOUR CODE HERE
-	return []error{errors.New("not implemented")}
+	var errs []error
+	for _, input := range data {
+		if input == "" {
+			errs = append(errs, errors.New("empty input"))
+		}
+		if strings.Contains(input, "invalid") {
+			errs = append(errs, errors.New("invalid input"))
+		}
+	}
+	return errs
 }
 
 // TODO: Implement retryOperation function
 // YOUR CODE HERE
 func retryOperation(op func() error, maxRetries int) error {
 	// YOUR CODE HERE
-	return op()
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		err = op()
+		if err == nil {
+			return nil
+		}
+		if i < maxRetries-1 {
+			fmt.Printf("Going to retry for the %d time\n", i+1)
+			time.Sleep(time.Duration(i+1) * time.Second)
+		}
+	}
+	return err
 }
 
 // Exercise 5: Panic and Recover
@@ -321,15 +419,40 @@ func exercisePanicRecover() {
 // TODO: Implement safeDivision function with panic/recover
 // YOUR CODE HERE
 func safeDivision(a, b float64) (result float64, err error) {
-	// YOUR CODE HERE
-	return 0, errors.New("not implemented")
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("something went wrong")
+			result = 0
+		}
+	}()
+
+	result = a / b // this could panic
+
+	return result, err
 }
 
 // TODO: Implement processWithRecover function
 // YOUR CODE HERE
 func processWithRecover(data []int) (result []int, err error) {
 	// YOUR CODE HERE
-	return nil, errors.New("not implemented")
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("something went wrong")
+			result = nil
+		}
+	}()
+
+	for _, d := range data {
+		if d == 0 {
+			panic("division by zero")
+		}
+		if d%2 == 0 {
+			panic("even number")
+		}
+		result = append(result, d)
+	}
+	return
 }
 
 // Exercise 6: Validation Patterns
@@ -397,33 +520,51 @@ type User struct {
 
 // TODO: Implement NewUser function
 // YOUR CODE HERE
-func NewUser(name, email string, age int) (*User, error) {
-	// YOUR CODE HERE
-	return nil, errors.New("not implemented")
+func NewUser(name, email string, age int) (userPtr *User, err error) {
+	userPtr = &User{Name: name, Email: email, Age: age}
+	return
 }
 
 // TODO: Implement User validation methods
 // YOUR CODE HERE
 func (u *User) ValidateName() error {
 	// YOUR CODE HERE
-	return errors.New("not implemented")
+	if u.Name == "" {
+		return errors.New("name is empty")
+	}
+	return nil
 }
 
 func (u *User) ValidateEmail() error {
 	// YOUR CODE HERE
-	return errors.New("not implemented")
+	if u.Email == "" || !strings.Contains(u.Email, "@") {
+		return errors.New("invalid email")
+	}
+	return nil
 }
 
 func (u *User) ValidateAge() error {
 	// YOUR CODE HERE
-	return errors.New("not implemented")
+	if u.Age < 0 || u.Age > 120 {
+		return errors.New("invalid age")
+	}
+	return nil
 }
 
 // TODO: Implement validatePipeline function
 // YOUR CODE HERE
 func validatePipeline(user *User) error {
 	// YOUR CODE HERE
-	return errors.New("not implemented")
+	if err := user.ValidateName(); err != nil {
+		return err
+	}
+	if err := user.ValidateEmail(); err != nil {
+		return err
+	}
+	if err := user.ValidateAge(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Exercise 7: Real-World Error Handling
@@ -485,21 +626,47 @@ func exerciseRealWorld() {
 // YOUR CODE HERE
 func processFile(filename string) error {
 	// YOUR CODE HERE
-	return errors.New("not implemented")
+	if filename == "" {
+		return errors.New("empty filename")
+	}
+	if !strings.HasSuffix(filename, ".json") {
+		return errors.New("invalid file extension")
+	}
+	if strings.Contains(filename, "invalid") {
+		return errors.New("invalid filename")
+	}
+	if strings.Contains(filename, "missing") {
+		return errors.New("file not found")
+	}
+	return nil
 }
 
 // TODO: Implement processBatch function
 // YOUR CODE HERE
 func processBatch(filenames []string) ([]string, []error) {
 	// YOUR CODE HERE
-	return nil, []error{errors.New("not implemented")}
+	var successful []string
+	var errs []error
+	for _, filename := range filenames {
+		err := processFile(filename)
+		if err != nil {
+			errs = append(errs, err)
+		} else {
+			successful = append(successful, filename)
+		}
+	}
+	return successful, errs
 }
 
 // TODO: Implement createErrorReport function
 // YOUR CODE HERE
 func createErrorReport(errors []error) string {
 	// YOUR CODE HERE
-	return "Error report not implemented"
+	var report string
+	for _, err := range errors {
+		report += fmt.Sprintf("Error: %v\n", err)
+	}
+	return report
 }
 
 // Exercise 8: Error Testing and Debugging
