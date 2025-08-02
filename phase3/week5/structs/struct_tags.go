@@ -55,16 +55,16 @@ func demonstrateBasicJSONTags() {
 
 // ===== ADVANCED JSON TAGS =====
 
-type Product struct {
-	ID        int                    `json:"id"`
-	Name      string                 `json:"product_name"` // Different field name
-	Price     float64                `json:"price,string"` // Convert to/from string
-	InStock   bool                   `json:"in_stock"`
-	Tags      []string               `json:"tags,omitempty"` // Omit empty slice
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
-	CreatedAt string                 `json:"created_at,omitempty"`
-	UpdatedAt *string                `json:"updated_at,omitempty"` // Pointer for null handling
-}
+// type Product struct {
+// 	ID        int                    `json:"id"`
+// 	Name      string                 `json:"product_name"` // Different field name
+// 	Price     float64                `json:"price,string"` // Convert to/from string
+// 	InStock   bool                   `json:"in_stock"`
+// 	Tags      []string               `json:"tags,omitempty"` // Omit empty slice
+// 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+// 	CreatedAt string                 `json:"created_at,omitempty"`
+// 	UpdatedAt *string                `json:"updated_at,omitempty"` // Pointer for null handling
+// }
 
 func demonstrateAdvancedJSONTags() {
 	fmt.Println("\n=== Advanced JSON Tags ===")

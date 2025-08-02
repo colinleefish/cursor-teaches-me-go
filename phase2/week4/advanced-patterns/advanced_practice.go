@@ -13,7 +13,6 @@ func exerciseRecursion() {
 
 	// TODO: Implement factorial(n int) (int, error)
 	// Handle negative numbers with error, use recursion
-	// YOUR CODE HERE
 
 	// Test factorial
 	fmt.Println("Factorial tests:")
@@ -29,7 +28,6 @@ func exerciseRecursion() {
 
 	// TODO: Implement fibonacci(n int) (int, error)
 	// Classic fibonacci with proper error handling
-	// YOUR CODE HERE
 
 	fmt.Println("\nFibonacci tests:")
 	fibTests := []int{0, 1, 2, 5, 8, -1, 15}
@@ -44,7 +42,6 @@ func exerciseRecursion() {
 
 	// TODO: Implement gcd(a, b int) int (Greatest Common Divisor)
 	// Use Euclidean algorithm with recursion
-	// YOUR CODE HERE
 
 	fmt.Println("\nGCD tests:")
 	gcdTests := [][2]int{{48, 18}, {100, 25}, {17, 13}, {0, 5}}
@@ -55,7 +52,6 @@ func exerciseRecursion() {
 
 	// TODO: Implement sumDigits(n int) int
 	// Sum all digits in a number using recursion
-	// YOUR CODE HERE
 
 	fmt.Println("\nSum digits tests:")
 	digitTests := []int{123, 9876, 0, 1, 999}
@@ -68,29 +64,51 @@ func exerciseRecursion() {
 // TODO: Implement factorial function
 // YOUR CODE HERE
 func factorial(n int) (int, error) {
-	// YOUR CODE HERE
-	return 0, errors.New("not implemented")
+	if n < 0 {
+		return 0, errors.New("negative numbers are not allowed")
+	}
+	if n == 0 {
+		return 1, nil
+	}
+	prev, _ := factorial(n - 1)
+	return n * prev, nil
 }
 
 // TODO: Implement fibonacci function
 // YOUR CODE HERE
 func fibonacci(n int) (int, error) {
 	// YOUR CODE HERE
-	return 0, errors.New("not implemented")
+	if n < 0 {
+		return 0, errors.New("negative input")
+	}
+	if n == 0 || n == 1 {
+		return n, nil
+	}
+	prev, _ := fibonacci(n - 1)
+	prev2, _ := fibonacci(n - 2)
+	return prev + prev2, nil
 }
 
 // TODO: Implement gcd function
 // YOUR CODE HERE
 func gcd(a, b int) int {
 	// YOUR CODE HERE
-	return 0
+	if a < 0 || b < 0 {
+		return 0
+	}
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
 }
 
 // TODO: Implement sumDigits function
 // YOUR CODE HERE
 func sumDigits(n int) int {
-	// YOUR CODE HERE
-	return 0
+	if n == 0 {
+		return 0
+	}
+	return sumDigits(n/10) + n%10
 }
 
 // Exercise 2: Higher-Order Functions
@@ -99,15 +117,12 @@ func exerciseHigherOrder() {
 
 	// TODO: Implement mapInt(slice []int, fn func(int) int) []int
 	// Apply function to each element of slice
-	// YOUR CODE HERE
 
 	// TODO: Implement filterInt(slice []int, predicate func(int) bool) []int
 	// Filter elements that satisfy the predicate
-	// YOUR CODE HERE
 
 	// TODO: Implement reduceInt(slice []int, initial int, fn func(int, int) int) int
 	// Reduce slice to single value using function
-	// YOUR CODE HERE
 
 	numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	fmt.Printf("Original numbers: %v\n", numbers)
@@ -135,7 +150,6 @@ func exerciseHigherOrder() {
 
 	// TODO: Implement findInt(slice []int, predicate func(int) bool) (int, bool)
 	// Find first element that satisfies predicate
-	// YOUR CODE HERE
 
 	fmt.Println("\nFind tests:")
 	firstEven, found := findInt(numbers, func(x int) bool { return x%2 == 0 })
@@ -153,27 +167,46 @@ func exerciseHigherOrder() {
 // YOUR CODE HERE
 func mapInt(slice []int, fn func(int) int) []int {
 	// YOUR CODE HERE
-	return nil
+	result := make([]int, len(slice))
+	for i, v := range slice {
+		result[i] = fn(v)
+	}
+	return result
 }
 
 // TODO: Implement filterInt function
 // YOUR CODE HERE
 func filterInt(slice []int, predicate func(int) bool) []int {
 	// YOUR CODE HERE
-	return nil
+	var result []int
+	for _, v := range slice {
+		if predicate(v) {
+			result = append(result, v)
+		}
+	}
+	return result
 }
 
 // TODO: Implement reduceInt function
 // YOUR CODE HERE
 func reduceInt(slice []int, initial int, fn func(int, int) int) int {
 	// YOUR CODE HERE
-	return 0
+	result := initial
+	for _, v := range slice {
+		result = fn(result, v)
+	}
+	return result
 }
 
 // TODO: Implement findInt function
 // YOUR CODE HERE
 func findInt(slice []int, predicate func(int) bool) (int, bool) {
 	// YOUR CODE HERE
+	for _, v := range slice {
+		if predicate(v) {
+			return v, true
+		}
+	}
 	return 0, false
 }
 
@@ -182,15 +215,12 @@ func exerciseFunctionComposition() {
 	fmt.Println("\n=== Exercise 3: Function Composition ===")
 
 	// TODO: Define function type Transform for int -> int transformations
-	// YOUR CODE HERE
 
 	// TODO: Implement compose function that combines two Transform functions
 	// compose(f, g Transform) Transform where result(x) = f(g(x))
-	// YOUR CODE HERE
 
 	// TODO: Create a chain method for Transform type
 	// Allow chaining multiple transformations: t1.Chain(t2).Chain(t3)
-	// YOUR CODE HERE
 
 	// Basic transformations
 	addOne := Transform(func(x int) int { return x + 1 })
@@ -217,7 +247,6 @@ func exerciseFunctionComposition() {
 
 	// TODO: Implement pipe function for multiple transformations
 	// pipe(transforms ...Transform) Transform
-	// YOUR CODE HERE
 
 	fmt.Println("\nPipeline tests:")
 	multistep := pipe(addOne, double, square)
@@ -232,22 +261,27 @@ type Transform func(int) int
 // TODO: Implement compose function
 // YOUR CODE HERE
 func compose(f, g Transform) Transform {
-	// YOUR CODE HERE
-	return func(x int) int { return 0 }
+	return func(x int) int { return f(g(x)) }
 }
 
 // TODO: Implement Chain method for Transform
 // YOUR CODE HERE
 func (t Transform) Chain(next Transform) Transform {
-	// YOUR CODE HERE
-	return func(x int) int { return 0 }
+	return func(x int) int { return next(t(x)) }
 }
 
 // TODO: Implement pipe function
 // YOUR CODE HERE
 func pipe(transforms ...Transform) Transform {
 	// YOUR CODE HERE
-	return func(x int) int { return 0 }
+	if len(transforms) == 0 {
+		return func(x int) int { return x }
+	}
+	result := transforms[0]
+	for _, t := range transforms[1:] {
+		result = result.Chain(t)
+	}
+	return result
 }
 
 // Exercise 4: Memoization
@@ -256,7 +290,6 @@ func exerciseMemoization() {
 
 	// TODO: Implement memoize function for int -> int functions
 	// memoize(fn func(int) int) func(int) int
-	// YOUR CODE HERE
 
 	// Create expensive fibonacci function
 	var expensiveFib func(int) int
@@ -291,7 +324,6 @@ func exerciseMemoization() {
 
 	// TODO: Implement memoizeWithTTL for cache expiration
 	// memoizeWithTTL(fn func(int) int, ttl time.Duration) func(int) int
-	// YOUR CODE HERE
 
 	fmt.Println("Memoization with TTL:")
 	ttlMemoizedFib := memoizeWithTTL(expensiveFib, 2*time.Second)
@@ -306,17 +338,37 @@ func exerciseMemoization() {
 
 // TODO: Implement memoize function
 // YOUR CODE HERE
-func memoize(fn func(int) int) func(int) int {
+func memoize(fn Transform) Transform {
 	// YOUR CODE HERE
-	return fn
+	cache := make(map[int]int)
+	return func(x int) int {
+		if val, ok := cache[x]; ok {
+			return val
+		}
+		val := fn(x)
+		cache[x] = val
+		return val
+	}
 }
 
 // TODO: Implement memoizeWithTTL function
 // YOUR CODE HERE
 func memoizeWithTTL(fn func(int) int, ttl time.Duration) func(int) int {
 	// YOUR CODE HERE
-	_ = ttl // Remove this line when implementing
-	return fn
+	ttls := make(map[int]time.Time)
+	cache := make(map[int]int)
+
+	return func(x int) int {
+		if val, ok := cache[x]; ok && time.Now().Before(ttls[x]) {
+			return val
+		}
+
+		val := fn(x)
+		cache[x] = val
+		ttls[x] = time.Now().Add(ttl)
+		return val
+
+	}
 }
 
 // Exercise 5: Decorator Patterns
@@ -324,19 +376,15 @@ func exerciseDecorators() {
 	fmt.Println("\n=== Exercise 5: Decorator Patterns ===")
 
 	// TODO: Define DecoratedFunc type for functions that can be decorated
-	// YOUR CODE HERE
 
 	// TODO: Implement timing decorator
 	// withTiming(fn DecoratedFunc) DecoratedFunc
-	// YOUR CODE HERE
 
 	// TODO: Implement logging decorator
 	// withLogging(name string, fn DecoratedFunc) DecoratedFunc
-	// YOUR CODE HERE
 
 	// TODO: Implement retry decorator
 	// withRetry(maxAttempts int, fn DecoratedFunc) DecoratedFunc
-	// YOUR CODE HERE
 
 	// Base function to decorate
 	slowFunction := DecoratedFunc(func() error {
@@ -387,24 +435,45 @@ type DecoratedFunc func() error
 // TODO: Implement withTiming decorator
 // YOUR CODE HERE
 func withTiming(fn DecoratedFunc) DecoratedFunc {
-	// YOUR CODE HERE
-	return fn
+	result := func() error {
+		start := time.Now()
+		err := fn()
+		duration := time.Since(start)
+		fmt.Printf("Function %T took %v\n", fn, duration)
+		return err
+	}
+	return result
 }
 
 // TODO: Implement withLogging decorator
 // YOUR CODE HERE
 func withLogging(name string, fn DecoratedFunc) DecoratedFunc {
 	// YOUR CODE HERE
-	_ = name // Remove this line when implementing
-	return fn
+	result := func() error {
+		fmt.Printf("[%s] INFO: ", name)
+		err := fn()
+		if err != nil {
+			fmt.Printf("[%s] ERROR: %v\n", name, err)
+		}
+		return err
+	}
+	return result
 }
 
 // TODO: Implement withRetry decorator
 // YOUR CODE HERE
 func withRetry(maxAttempts int, fn DecoratedFunc) DecoratedFunc {
 	// YOUR CODE HERE
-	_ = maxAttempts // Remove this line when implementing
-	return fn
+	result := func() error {
+		for attempt := 0; attempt < maxAttempts; attempt++ {
+			err := fn()
+			if err == nil {
+				return nil
+			}
+		}
+		return fmt.Errorf("failed after %d attempts", maxAttempts)
+	}
+	return result
 }
 
 // Exercise 6: Data Processing Pipelines
@@ -414,14 +483,11 @@ func exerciseDataPipelines() {
 	// TODO: Define Pipeline type for data processing
 	// type Pipeline[T any] func([]T) []T (if using generics)
 	// For now, use IntPipeline for simplicity
-	// YOUR CODE HERE
 
 	// TODO: Implement Then method for chaining pipelines
-	// YOUR CODE HERE
 
 	// TODO: Create basic pipeline operations
 	// filterEvens, mapDouble, filterGreaterThan(threshold int) IntPipeline
-	// YOUR CODE HERE
 
 	data := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	fmt.Printf("Original data: %v\n", data)
@@ -439,7 +505,6 @@ func exerciseDataPipelines() {
 
 	// TODO: Implement parallel pipeline processing
 	// parallelMap(data []int, fn func(int) int, workers int) []int
-	// YOUR CODE HERE
 
 	fmt.Println("\nParallel processing test:")
 	expensiveOperation := func(x int) int {
@@ -469,25 +534,41 @@ type IntPipeline func([]int) []int
 // YOUR CODE HERE
 func (p IntPipeline) Then(next IntPipeline) IntPipeline {
 	// YOUR CODE HERE
-	return func(input []int) []int { return nil }
+	return func(input []int) []int {
+		return next(p(input))
+	}
 }
 
 // TODO: Implement pipeline operations
 // YOUR CODE HERE
 var filterEvens = IntPipeline(func(input []int) []int {
-	// YOUR CODE HERE
-	return nil
+	result := make([]int, 0, len(input))
+	for _, v := range input {
+		if v%2 == 0 {
+			result = append(result, v)
+		}
+	}
+	return result
 })
 
 var mapDouble = IntPipeline(func(input []int) []int {
-	// YOUR CODE HERE
-	return nil
+	result := make([]int, 0, len(input))
+	for _, v := range input {
+		result = append(result, v*2)
+	}
+	return result
 })
 
-func filterGreaterThan(threshold int) IntPipeline {
-	// YOUR CODE HERE
-	_ = threshold // Remove when implementing
-	return func(input []int) []int { return nil }
+var filterGreaterThan = func(threshold int) IntPipeline {
+	return func(input []int) []int {
+		result := make([]int, 0, len(input))
+		for _, v := range input {
+			if v > threshold {
+				result = append(result, v)
+			}
+		}
+		return result
+	}
 }
 
 // TODO: Implement parallelMap function
@@ -503,15 +584,12 @@ func exerciseTreeOperations() {
 	fmt.Println("\n=== Exercise 7: Tree Operations ===")
 
 	// TODO: Define TreeNode struct
-	// YOUR CODE HERE
 
 	// TODO: Implement tree traversal methods
 	// InOrder(visit func(int)), PreOrder(visit func(int)), PostOrder(visit func(int))
-	// YOUR CODE HERE
 
 	// TODO: Implement tree transformation functions
 	// Map(fn func(int) int) *TreeNode, Filter(predicate func(int) bool) *TreeNode
-	// YOUR CODE HERE
 
 	// Create sample tree
 	//       5
@@ -576,26 +654,68 @@ type TreeNode struct {
 // YOUR CODE HERE
 func (t *TreeNode) InOrder(visit func(int)) {
 	// YOUR CODE HERE
+	if t.Left != nil {
+		t.Left.InOrder(visit)
+	}
+	visit(t.Value)
+	if t.Right != nil {
+		t.Right.InOrder(visit)
+	}
 }
 
 func (t *TreeNode) PreOrder(visit func(int)) {
 	// YOUR CODE HERE
+	if t != nil {
+		visit(t.Value)
+		if t.Left != nil {
+			t.Left.PreOrder(visit)
+		}
+		if t.Right != nil {
+			t.Right.PreOrder(visit)
+		}
+	}
 }
 
 func (t *TreeNode) PostOrder(visit func(int)) {
 	// YOUR CODE HERE
+	if t != nil {
+		if t.Left != nil {
+			t.Left.PostOrder(visit)
+		}
+		if t.Right != nil {
+			t.Right.PostOrder(visit)
+		}
+		visit(t.Value)
+	}
 }
 
 func (t *TreeNode) Map(fn func(int) int) *TreeNode {
 	// YOUR CODE HERE
-	_ = fn // Remove when implementing
-	return nil
+	if t == nil {
+		return nil
+	}
+	return &TreeNode{
+		Value: fn(t.Value),
+		Left:  t.Left.Map(fn),
+		Right: t.Right.Map(fn),
+	}
 }
 
 func (t *TreeNode) Filter(predicate func(int) bool) *TreeNode {
 	// YOUR CODE HERE
-	_ = predicate // Remove when implementing
-	return nil
+	if t == nil {
+		return nil
+	}
+	if predicate(t.Value) {
+		return t
+	}
+	if t.Left != nil {
+		t.Left = t.Left.Filter(predicate)
+	}
+	if t.Right != nil {
+		t.Right = t.Right.Filter(predicate)
+	}
+	return t
 }
 
 // Exercise 8: Real-World Application
@@ -674,14 +794,14 @@ func main() {
 	fmt.Println("🚀 Go Advanced Function Patterns Practice")
 	fmt.Println("=========================================")
 
-	exerciseRecursion()
-	exerciseHigherOrder()
-	exerciseFunctionComposition()
-	exerciseMemoization()
-	exerciseDecorators()
-	exerciseDataPipelines()
+	// exerciseRecursion()
+	// exerciseHigherOrder()
+	// exerciseFunctionComposition()
+	// exerciseMemoization()
+	// exerciseDecorators()
+	// exerciseDataPipelines()
 	exerciseTreeOperations()
-	exerciseRealWorld()
+	// exerciseRealWorld()
 
 	fmt.Println("\n✅ Advanced pattern exercises completed!")
 	fmt.Println("\n💡 Key Takeaways:")
