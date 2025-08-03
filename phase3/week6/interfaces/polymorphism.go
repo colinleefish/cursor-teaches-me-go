@@ -9,46 +9,66 @@ import (
 
 // ===== BASIC POLYMORPHISM =====
 
+// TODO: Define Animal interface with Speak() string and Move() string methods
+// YOUR CODE HERE
 type Animal interface {
 	Speak() string
 	Move() string
 }
 
+// TODO: Define DogPoly struct with Name and Breed fields (both string)
+// YOUR CODE HERE
 type DogPoly struct {
 	Name  string
 	Breed string
 }
 
+// TODO: Implement Speak() method for DogPoly - return "[name] says Woof!"
+// YOUR CODE HERE
 func (d DogPoly) Speak() string {
 	return fmt.Sprintf("%s says Woof!", d.Name)
 }
 
+// TODO: Implement Move() method for DogPoly - return "[name] runs around"
+// YOUR CODE HERE
 func (d DogPoly) Move() string {
 	return fmt.Sprintf("%s runs around", d.Name)
 }
 
+// TODO: Define BirdPoly struct with Name and Species fields (both string)
+// YOUR CODE HERE
 type BirdPoly struct {
 	Name    string
 	Species string
 }
 
+// TODO: Implement Speak() method for BirdPoly - return "[name] chirps melodiously"
+// YOUR CODE HERE
 func (b BirdPoly) Speak() string {
 	return fmt.Sprintf("%s chirps melodiously", b.Name)
 }
 
+// TODO: Implement Move() method for BirdPoly - return "[name] flies gracefully"
+// YOUR CODE HERE
 func (b BirdPoly) Move() string {
 	return fmt.Sprintf("%s flies gracefully", b.Name)
 }
 
+// TODO: Define FishPoly struct with Name and Type fields (both string)
+// YOUR CODE HERE
 type FishPoly struct {
 	Name string
 	Type string
 }
 
+// TODO: Implement Speak() method for FishPoly - return "[name] makes bubbles"
+// YOUR CODE HERE
 func (f FishPoly) Speak() string {
 	return fmt.Sprintf("%s makes bubbles", f.Name)
 }
 
+// TODO: Implement Move() method for FishPoly - return "[name] swims smoothly"
+// YOUR CODE HERE
 func (f FishPoly) Move() string {
 	return fmt.Sprintf("%s swims smoothly", f.Name)
 }
@@ -56,89 +76,130 @@ func (f FishPoly) Move() string {
 func demonstrateBasicPolymorphism() {
 	fmt.Println("=== Basic Polymorphism ===")
 
-	// Different types, same interface
+	// TODO: Create a slice of Animal containing different types:
+	// DogPoly, BirdPoly, FishPoly instances with sample data
+	// YOUR CODE HERE
 	animals := []Animal{
-		DogPoly{Name: "Rex", Breed: "German Shepherd"},
+		DogPoly{Name: "Rex", Breed: "Golden Retriever"},
 		BirdPoly{Name: "Tweety", Species: "Canary"},
 		FishPoly{Name: "Nemo", Type: "Clownfish"},
-		DogPoly{Name: "Buddy", Breed: "Golden Retriever"},
 	}
 
-	// Polymorphic behavior - same method calls, different implementations
+	// TODO: Loop through animals and call Speak() and Move() on each
+	// Print the animal number, speak result, move result, and type (%T)
+	// YOUR CODE HERE
 	for i, animal := range animals {
-		fmt.Printf("Animal %d:\n", i+1)
-		fmt.Printf("  %s\n", animal.Speak())
-		fmt.Printf("  %s\n", animal.Move())
-		fmt.Printf("  Type: %T\n", animal)
-		fmt.Println()
+		fmt.Printf("Animal %d: %T\n", i+1, animal)
+		fmt.Println(animal.Speak())
+		fmt.Println(animal.Move())
 	}
 
-	// Functions can work with any Animal implementation
+	// TODO: Call makeAnimalShow function with the animals slice
+	// YOUR CODE HERE
 	makeAnimalShow(animals)
 }
 
+// TODO: Implement makeAnimalShow function that takes []Animal
+// Print "🎪 Welcome to the Animal Show!"
+// Loop through animals and print their Speak() and Move() results
+// YOUR CODE HERE
+
 func makeAnimalShow(animals []Animal) {
-	fmt.Println("🎪 Welcome to the Animal Show!")
+	fmt.Println("🎪 Welcome to the Animal Show! (Though I think it's a bit weird)")
 	for _, animal := range animals {
-		fmt.Printf("- %s\n", animal.Speak())
-		fmt.Printf("- %s\n", animal.Move())
+		fmt.Printf("🐾 Introducing %s: \n", animal)
+		fmt.Println(animal.Speak())
+		fmt.Println(animal.Move())
+		fmt.Println()
 	}
 }
 
 // ===== STRATEGY PATTERN =====
 
+// TODO: Define SortStrategy interface with:
+// - Sort([]int) []int method
+// - Name() string method
+// YOUR CODE HERE
 type SortStrategy interface {
 	Sort([]int) []int
 	Name() string
 }
 
+// TODO: Define BubbleSort struct (empty struct)
+// YOUR CODE HERE
 type BubbleSort struct{}
 
-func (bs BubbleSort) Sort(data []int) []int {
-	result := make([]int, len(data))
-	copy(result, data)
+// TODO: Implement Sort method for BubbleSort
+// - Make a copy of input data
+// - Implement bubble sort algorithm (nested loops)
+// - Compare adjacent elements and swap if needed
+// - Return sorted copy
+// YOUR CODE HERE
+func (b BubbleSort) Sort(arr []int) []int {
+	copyArr := make([]int, len(arr))
+	copy(copyArr, arr)
 
-	n := len(result)
-	for i := 0; i < n-1; i++ {
-		for j := 0; j < n-i-1; j++ {
-			if result[j] > result[j+1] {
-				result[j], result[j+1] = result[j+1], result[j]
+	for i := 0; i < len(copyArr); i++ {
+		for j := 0; j < len(copyArr)-i-1; j++ {
+			if copyArr[j] > copyArr[j+1] {
+				copyArr[j], copyArr[j+1] = copyArr[j+1], copyArr[j]
 			}
 		}
 	}
-	return result
+	return copyArr
 }
 
-func (bs BubbleSort) Name() string {
+// TODO: Implement Name method for BubbleSort
+// Return "Bubble Sort"
+// YOUR CODE HERE
+func (b BubbleSort) Name() string {
 	return "Bubble Sort"
 }
 
+// TODO: Define QuickSort struct (empty struct)
+// YOUR CODE HERE
 type QuickSort struct{}
 
-func (qs QuickSort) Sort(data []int) []int {
-	result := make([]int, len(data))
-	copy(result, data)
-	quickSortHelper(result, 0, len(result)-1)
-	return result
+// TODO: Implement Sort method for QuickSort
+// - Make a copy of input data
+// - Call quickSortHelper with the copy
+// - Return sorted copy
+// YOUR CODE HERE
+func (q QuickSort) Sort(arr []int) []int {
+	copyArr := make([]int, len(arr))
+	copy(copyArr, arr)
+	quickSortHelper(copyArr, 0, len(copyArr)-1)
+	return copyArr
 }
 
-func (qs QuickSort) Name() string {
+// TODO: Implement Name method for QuickSort
+// Return "Quick Sort"
+// YOUR CODE HERE
+func (q QuickSort) Name() string {
 	return "Quick Sort"
 }
 
+// TODO: Implement quickSortHelper function
+// Parameters: arr []int, low, high int
+// Recursive quicksort implementation
+// YOUR CODE HERE
 func quickSortHelper(arr []int, low, high int) {
 	if low < high {
-		pi := partition(arr, low, high)
-		quickSortHelper(arr, low, pi-1)
-		quickSortHelper(arr, pi+1, high)
+		pivot := partition(arr, low, high)
+		quickSortHelper(arr, low, pivot-1)
+		quickSortHelper(arr, pivot+1, high)
 	}
 }
 
+// TODO: Implement partition function
+// Parameters: arr []int, low, high int
+// Returns pivot index after partitioning
+// YOUR CODE HERE
 func partition(arr []int, low, high int) int {
 	pivot := arr[high]
 	i := low - 1
 
-	for j := low; j <= high-1; j++ {
+	for j := low; j < high; j++ {
 		if arr[j] < pivot {
 			i++
 			arr[i], arr[j] = arr[j], arr[i]
@@ -148,431 +209,643 @@ func partition(arr []int, low, high int) int {
 	return i + 1
 }
 
+// TODO: Define DataSorter struct with strategy field of type SortStrategy
+// YOUR CODE HERE
 type DataSorter struct {
 	strategy SortStrategy
 }
 
+// TODO: Implement NewDataSorter constructor
+// Takes SortStrategy parameter and returns *DataSorter
+// YOUR CODE HERE
 func NewDataSorter(strategy SortStrategy) *DataSorter {
 	return &DataSorter{strategy: strategy}
 }
 
-func (ds *DataSorter) SetStrategy(strategy SortStrategy) {
-	ds.strategy = strategy
+// TODO: Implement SetStrategy method for DataSorter
+// Allows changing the sorting strategy at runtime
+// YOUR CODE HERE
+func (d *DataSorter) SetStrategy(strategy SortStrategy) {
+	d.strategy = strategy
 }
 
-func (ds *DataSorter) SortData(data []int) []int {
-	fmt.Printf("Using %s...\n", ds.strategy.Name())
+// TODO: Implement SortData method for DataSorter
+// - Print "Using [strategy name]..."
+// - Record start time with time.Now()
+// - Call strategy.Sort(data)
+// - Calculate duration with time.Since(start)
+// - Print completion message with duration
+// - Return sorted result
+// YOUR CODE HERE
+func (d *DataSorter) SortData(data []int) []int {
+	fmt.Printf("Using %s...\n", d.strategy.Name())
 	start := time.Now()
-	result := ds.strategy.Sort(data)
+	sorted := d.strategy.Sort(data)
 	duration := time.Since(start)
-	fmt.Printf("%s completed in %v\n", ds.strategy.Name(), duration)
-	return result
+	fmt.Printf("Sorting completed in %s\n", duration)
+	return sorted
 }
 
 func demonstrateStrategyPattern() {
 	fmt.Println("\n=== Strategy Pattern ===")
 
-	data := []int{64, 34, 25, 12, 22, 11, 90}
-	fmt.Printf("Original data: %v\n", data)
-
+	// TODO: Create sample data slice to sort
+	// YOUR CODE HERE
+	data := []int{9, 3, 7, 1, 5, 8, 2, 6, 4}
+	// TODO: Create DataSorter with BubbleSort strategy
+	// YOUR CODE HERE
 	sorter := NewDataSorter(BubbleSort{})
 
-	// Use bubble sort
-	result1 := sorter.SortData(data)
-	fmt.Printf("Bubble sorted: %v\n", result1)
+	// TODO: Sort data using bubble sort and print result
+	// YOUR CODE HERE
+	bubbleSorted := sorter.SortData(data)
+	fmt.Printf("Bubble sorted: %v\n", bubbleSorted)
 
-	// Change strategy to quick sort
+	// TODO: Change strategy to QuickSort using SetStrategy
+	// YOUR CODE HERE
 	sorter.SetStrategy(QuickSort{})
-	result2 := sorter.SortData(data)
-	fmt.Printf("Quick sorted: %v\n", result2)
+
+	// TODO: Sort the same data with new strategy and print result
+	// YOUR CODE HERE
+	quickSorted := sorter.SortData(data)
+	fmt.Printf("Quick sorted: %v\n", quickSorted)
 }
 
 // ===== OBSERVER PATTERN =====
 
+// TODO: Define Observer interface with:
+// - Update(message string) method
+// - GetID() string method
+// YOUR CODE HERE
 type Observer interface {
 	Update(message string)
 	GetID() string
 }
 
+// TODO: Define Subject interface with:
+// - Attach(observer Observer) method
+// - Detach(observer Observer) method
+// - Notify(message string) method
+// YOUR CODE HERE
 type Subject interface {
 	Attach(observer Observer)
 	Detach(observer Observer)
 	Notify(message string)
 }
 
+// TODO: Define NewsAgency struct with:
+// - observers []Observer field
+// - news string field
+// YOUR CODE HERE
 type NewsAgency struct {
 	observers []Observer
 	news      string
 }
 
+// TODO: Implement NewNewsAgency constructor
+// Initialize with empty observers slice
+// YOUR CODE HERE
 func NewNewsAgency() *NewsAgency {
-	return &NewsAgency{
-		observers: make([]Observer, 0),
-	}
+	return &NewsAgency{observers: []Observer{}, news: ""}
 }
 
-func (na *NewsAgency) Attach(observer Observer) {
-	na.observers = append(na.observers, observer)
-	fmt.Printf("Observer %s attached\n", observer.GetID())
+// TODO: Implement Attach method for NewsAgency
+// Add observer to observers slice and print attachment message
+// YOUR CODE HERE
+func (n *NewsAgency) Attach(ob Observer) {
+	n.observers = append(n.observers, ob)
+	fmt.Printf("📰 %s subscribed to the news agency\n", ob.GetID())
 }
 
-func (na *NewsAgency) Detach(observer Observer) {
-	for i, obs := range na.observers {
-		if obs.GetID() == observer.GetID() {
-			na.observers = append(na.observers[:i], na.observers[i+1:]...)
-			fmt.Printf("Observer %s detached\n", observer.GetID())
+// TODO: Implement Detach method for NewsAgency
+// Remove observer from observers slice and print detachment message
+// YOUR CODE HERE
+func (n *NewsAgency) Detach(ob Observer) {
+	for i, observer := range n.observers {
+		if observer.GetID() == ob.GetID() {
+			n.observers = append(n.observers[:i], n.observers[i+1:]...)
+			fmt.Printf("📰 %s unsubscribed from the news agency\n", ob.GetID())
 			break
 		}
 	}
 }
 
-func (na *NewsAgency) Notify(message string) {
-	na.news = message
-	fmt.Printf("📰 Broadcasting news: %s\n", message)
-	for _, observer := range na.observers {
-		observer.Update(message)
+// TODO: Implement Notify method for NewsAgency
+// Set news field and call Update on all observers
+// YOUR CODE HERE
+func (n *NewsAgency) Notify(message string) {
+	n.news = message
+	for _, ob := range n.observers {
+		ob.Update(message)
 	}
 }
 
+// TODO: Define NewsChannel struct with name string field
+// YOUR CODE HERE
 type NewsChannel struct {
-	name string
+	Name string
 }
 
+// TODO: Implement NewNewsChannel constructor
+// YOUR CODE HERE
 func NewNewsChannel(name string) *NewsChannel {
-	return &NewsChannel{name: name}
+	return &NewsChannel{Name: name}
 }
 
-func (nc *NewsChannel) Update(message string) {
-	fmt.Printf("📺 %s received: %s\n", nc.name, message)
+// TODO: Implement Update method for NewsChannel
+// Print "📺 [name] received: [message]"
+// YOUR CODE HERE
+func (n *NewsChannel) Update(message string) {
+	fmt.Printf("📺 %s received: %s\n", n.Name, message)
 }
 
-func (nc *NewsChannel) GetID() string {
-	return nc.name
+// TODO: Implement GetID method for NewsChannel
+// Return the name field
+// YOUR CODE HERE
+func (n *NewsChannel) GetID() string {
+	return n.Name
 }
 
+// TODO: Define NewsPaper struct with name string field
+// YOUR CODE HERE
 type NewsPaper struct {
-	name string
+	Name string
 }
 
+// TODO: Implement NewNewsPaper constructor
+// YOUR CODE HERE
 func NewNewsPaper(name string) *NewsPaper {
-	return &NewsPaper{name: name}
+	return &NewsPaper{Name: name}
 }
 
-func (np *NewsPaper) Update(message string) {
-	fmt.Printf("📰 %s printing: %s\n", np.name, message)
+// TODO: Implement Update method for NewsPaper
+// Print "📰 [name] printing: [message]"
+// YOUR CODE HERE
+func (n *NewsPaper) Update(message string) {
+	fmt.Printf("📰 %s printing: %s\n", n.Name, message)
 }
 
-func (np *NewsPaper) GetID() string {
-	return np.name
+// TODO: Implement GetID method for NewsPaper
+// Return the name field
+// YOUR CODE HERE
+func (n *NewsPaper) GetID() string {
+	return n.Name
 }
 
 func demonstrateObserverPattern() {
 	fmt.Println("\n=== Observer Pattern ===")
 
-	agency := NewNewsAgency()
-
-	// Create observers
+	// TODO: Create a NewsAgency instance
+	// YOUR CODE HERE
+	ap := NewNewsAgency()
+	// TODO: Create different observers (NewsChannel and NewsPaper instances)
+	// YOUR CODE HERE
 	cnn := NewNewsChannel("CNN")
-	bbc := NewNewsChannel("BBC")
-	times := NewNewsPaper("New York Times")
-	post := NewNewsPaper("Washington Post")
+	nyt := NewNewsPaper("New York Times")
 
-	// Attach observers
-	agency.Attach(cnn)
-	agency.Attach(bbc)
-	agency.Attach(times)
-	agency.Attach(post)
+	// TODO: Attach all observers to the agency
+	// YOUR CODE HERE
+	ap.Attach(cnn)
+	ap.Attach(nyt)
 
-	// Broadcast news
-	agency.Notify("Go 1.21 Released with New Features!")
-	fmt.Println()
+	// TODO: Broadcast some news using Notify
+	// YOUR CODE HERE
+	ap.Notify("Breaking news: the sky is falling!")
 
-	// Detach one observer
-	agency.Detach(bbc)
-	agency.Notify("Major Breakthrough in AI Technology!")
+	// TODO: Detach one observer and broadcast more news
+	// YOUR CODE HERE
+	ap.Detach(cnn)
+	ap.Notify("Breaking news: Trump is back in office!")
+
 }
 
 // ===== FACTORY PATTERN =====
 
+// TODO: Define Transport interface with:
+// - Deliver() string method
+// - GetType() string method
+// YOUR CODE HERE
 type Transport interface {
 	Deliver() string
 	GetType() string
 }
 
+// TODO: Define Truck struct with capacity int field
+// YOUR CODE HERE
 type Truck struct {
-	capacity int
+	Capacity int
 }
 
+// TODO: Implement Deliver() method for Truck
+// Return "Delivering by truck (capacity: [capacity] tons)"
+// YOUR CODE HERE
 func (t Truck) Deliver() string {
-	return fmt.Sprintf("Delivering by truck (capacity: %d tons)", t.capacity)
+	return fmt.Sprintf("Delivering by truck (capacity: %d)", t.Capacity)
 }
 
+// TODO: Implement GetType() method for Truck
+// Return "Land Transport"
+// YOUR CODE HERE
 func (t Truck) GetType() string {
 	return "Land Transport"
 }
 
+// TODO: Define Ship struct with containers int field
+// YOUR CODE HERE
 type Ship struct {
-	containers int
+	Containers int
 }
 
+// TODO: Implement Deliver() method for Ship
+// Return "Delivering by ship ([containers] containers)"
+// YOUR CODE HERE
 func (s Ship) Deliver() string {
-	return fmt.Sprintf("Delivering by ship (%d containers)", s.containers)
+	return fmt.Sprintf("Delivering by ship (%d containers)", s.Containers)
 }
 
+// TODO: Implement GetType() method for Ship
+// Return "Sea Transport"
+// YOUR CODE HERE
 func (s Ship) GetType() string {
 	return "Sea Transport"
 }
 
+// TODO: Define Plane struct with passengers int field
+// YOUR CODE HERE
 type Plane struct {
-	passengers int
+	Passengers int
 }
 
+// TODO: Implement Deliver() method for Plane
+// Return "Delivering by plane ([passengers] passengers)"
+// YOUR CODE HERE
 func (p Plane) Deliver() string {
-	return fmt.Sprintf("Delivering by plane (%d passengers)", p.passengers)
+	return fmt.Sprintf("Delivering by plane (%d passengers)", p.Passengers)
 }
 
+// TODO: Implement GetType() method for Plane
+// Return "Air Transport"
+// YOUR CODE HERE
 func (p Plane) GetType() string {
 	return "Air Transport"
 }
 
+// TODO: Define TransportFactory interface with CreateTransport() Transport method
+// YOUR CODE HERE
 type TransportFactory interface {
 	CreateTransport() Transport
 }
 
+// TODO: Define LandTransportFactory struct (empty struct)
+// YOUR CODE HERE
 type LandTransportFactory struct{}
 
-func (ltf LandTransportFactory) CreateTransport() Transport {
-	return Truck{capacity: 10}
+// TODO: Implement CreateTransport() method for LandTransportFactory
+// Return Truck with capacity 10
+// YOUR CODE HERE
+func (l LandTransportFactory) CreateTransport() Transport {
+	return Truck{Capacity: 10}
 }
 
+// TODO: Define SeaTransportFactory struct (empty struct)
+// YOUR CODE HERE
 type SeaTransportFactory struct{}
 
-func (stf SeaTransportFactory) CreateTransport() Transport {
-	return Ship{containers: 50}
+// TODO: Implement CreateTransport() method for SeaTransportFactory
+// Return Ship with containers 50
+// YOUR CODE HERE
+func (s SeaTransportFactory) CreateTransport() Transport {
+	return Ship{Containers: 50}
 }
 
+// TODO: Define AirTransportFactory struct (empty struct)
+// YOUR CODE HERE
 type AirTransportFactory struct{}
 
-func (atf AirTransportFactory) CreateTransport() Transport {
-	return Plane{passengers: 200}
+// TODO: Implement CreateTransport() method for AirTransportFactory
+// Return Plane with passengers 200
+// YOUR CODE HERE
+func (a AirTransportFactory) CreateTransport() Transport {
+	return Plane{Passengers: 200}
 }
 
+// TODO: Define LogisticsManager struct with factory TransportFactory field
+// YOUR CODE HERE
 type LogisticsManager struct {
 	factory TransportFactory
 }
+
+// TODO: Implement NewLogisticsManager constructor
+// Takes TransportFactory parameter and returns *LogisticsManager
+// YOUR CODE HERE
 
 func NewLogisticsManager(factory TransportFactory) *LogisticsManager {
 	return &LogisticsManager{factory: factory}
 }
 
-func (lm *LogisticsManager) PlanDelivery() {
-	transport := lm.factory.CreateTransport()
+// TODO: Implement PlanDelivery() method for LogisticsManager
+// - Call factory.CreateTransport()
+// - Print delivery info with "🚚" emoji
+// - Print transport type
+// YOUR CODE HERE
+func (l *LogisticsManager) PlanDelivery() {
+	transport := l.factory.CreateTransport()
 	fmt.Printf("🚚 %s\n", transport.Deliver())
-	fmt.Printf("   Type: %s\n", transport.GetType())
+	fmt.Printf("Type: %s\n", transport.GetType())
 }
 
 func demonstrateFactoryPattern() {
 	fmt.Println("\n=== Factory Pattern ===")
 
-	// Different factories create different transports
-	factories := []TransportFactory{
-		LandTransportFactory{},
-		SeaTransportFactory{},
-		AirTransportFactory{},
-	}
+	// TODO: Create different factories (Land, Sea, Air)
+	// YOUR CODE HERE
+	landFactory := LandTransportFactory{}
+	seaFactory := SeaTransportFactory{}
+	airFactory := AirTransportFactory{}
 
-	for i, factory := range factories {
-		fmt.Printf("Delivery Option %d:\n", i+1)
+	factories := []TransportFactory{&landFactory, &seaFactory, &airFactory}
+
+	// TODO: Loop through factories and demonstrate each delivery option
+	// YOUR CODE HERE
+	for _, factory := range factories {
 		manager := NewLogisticsManager(factory)
 		manager.PlanDelivery()
-		fmt.Println()
 	}
+
 }
 
 // ===== ADAPTER PATTERN =====
 
-// Legacy system interface
+// TODO: Define LegacyPrinter interface with PrintOldFormat(data string) method
+// YOUR CODE HERE
 type LegacyPrinter interface {
 	PrintOldFormat(data string)
 }
 
+// TODO: Define OldPrinter struct with name string field
+// YOUR CODE HERE
 type OldPrinter struct {
-	name string
+	Name string
 }
 
-func (op OldPrinter) PrintOldFormat(data string) {
-	fmt.Printf("🖨️ [Legacy %s] %s\n", op.name, strings.ToUpper(data))
+// TODO: Implement PrintOldFormat method for OldPrinter
+// Print "🖨️ [Legacy [name]] [UPPERCASE data]"
+// Use strings.ToUpper() to convert data to uppercase
+// YOUR CODE HERE
+func (o *OldPrinter) PrintOldFormat(data string) {
+	fmt.Printf("🖨️ %s %s\n", o.Name, strings.ToUpper(data))
 }
 
-// Modern interface
+// TODO: Define ModernPrinter interface with Print(document DocumentAdapter) error method
+// YOUR CODE HERE
 type ModernPrinter interface {
 	Print(document DocumentAdapter) error
 }
 
+// TODO: Define DocumentAdapter struct with Title, Content, Author fields (all string)
+// YOUR CODE HERE
 type DocumentAdapter struct {
 	Title   string
 	Content string
 	Author  string
 }
 
-// Adapter to make legacy printer work with modern interface
+// TODO: Define PrinterAdapter struct with legacyPrinter LegacyPrinter field
+// YOUR CODE HERE
 type PrinterAdapter struct {
 	legacyPrinter LegacyPrinter
 }
 
-func NewPrinterAdapter(legacy LegacyPrinter) *PrinterAdapter {
-	return &PrinterAdapter{legacyPrinter: legacy}
+// TODO: Implement NewPrinterAdapter constructor
+// Takes LegacyPrinter parameter and returns *PrinterAdapter
+// YOUR CODE HERE
+func NewPrinterAdapter(legacyPrinter LegacyPrinter) *PrinterAdapter {
+	return &PrinterAdapter{legacyPrinter: legacyPrinter}
 }
 
-func (pa *PrinterAdapter) Print(doc DocumentAdapter) error {
-	// Convert modern document to legacy format
-	legacyFormat := fmt.Sprintf("TITLE: %s | AUTHOR: %s | CONTENT: %s",
-		doc.Title, doc.Author, doc.Content)
-
-	pa.legacyPrinter.PrintOldFormat(legacyFormat)
+// TODO: Implement Print method for PrinterAdapter
+// - Convert modern document to legacy format: "TITLE: [title] | AUTHOR: [author] | CONTENT: [content]"
+// - Call legacyPrinter.PrintOldFormat with the converted format
+// - Return nil error
+// YOUR CODE HERE
+func (p *PrinterAdapter) Print(document DocumentAdapter) error {
+	legacyData := fmt.Sprintf("TITLE: %s | AUTHOR: %s | CONTENT: %s", document.Title, document.Author, document.Content)
+	p.legacyPrinter.PrintOldFormat(legacyData)
 	return nil
 }
 
+// TODO: Define AdvancedPrinter struct with model string field
+// YOUR CODE HERE
 type AdvancedPrinter struct {
-	model string
+	Model string
 }
 
-func (ap AdvancedPrinter) Print(doc DocumentAdapter) error {
-	fmt.Printf("🖨️ [Advanced %s]\n", ap.model)
-	fmt.Printf("   Title: %s\n", doc.Title)
-	fmt.Printf("   Author: %s\n", doc.Author)
-	fmt.Printf("   Content: %s\n", doc.Content)
+// TODO: Implement Print method for AdvancedPrinter
+// - Print "🖨️ [Advanced [model]]"
+// - Print Title, Author, Content on separate lines with indentation
+// - Return nil error
+// YOUR CODE HERE
+func (a *AdvancedPrinter) Print(document DocumentAdapter) error {
+	fmt.Printf("🖨️ Advanced %s\n", a.Model)
+	fmt.Printf("Title: %s\n", document.Title)
+	fmt.Printf("Author: %s\n", document.Author)
+	fmt.Printf("Content: %s\n", document.Content)
 	return nil
 }
 
 func demonstrateAdapterPattern() {
 	fmt.Println("\n=== Adapter Pattern ===")
 
-	doc := DocumentAdapter{
-		Title:   "Go Programming Guide",
-		Content: "Learning interfaces and polymorphism",
-		Author:  "Go Developer",
+	// TODO: Create a DocumentAdapter instance with sample data
+	// YOUR CODE HERE
+	sampleDoc := DocumentAdapter{
+		Title:   "Sample Title",
+		Content: "Sample Content",
+		Author:  "Sample Author",
 	}
 
-	// Modern printers
-	printers := []ModernPrinter{
-		AdvancedPrinter{model: "HP LaserJet Pro"},
-		NewPrinterAdapter(OldPrinter{name: "Dot Matrix 1985"}),
-		AdvancedPrinter{model: "Canon PIXMA"},
-		NewPrinterAdapter(OldPrinter{name: "IBM Typewriter"}),
-	}
+	// TODO: Create a slice of ModernPrinter containing:
+	// - AdvancedPrinter instances
+	// - PrinterAdapter instances wrapping OldPrinter instances
+	// YOUR CODE HERE
+	advancedPrinter := AdvancedPrinter{Model: "HP-1234"}
+	oldPrinter := OldPrinter{Name: "Epson-1234"}
 
-	for i, printer := range printers {
-		fmt.Printf("Printer %d:\n", i+1)
-		printer.Print(doc)
-		fmt.Println()
+	printerAdapter := NewPrinterAdapter(&oldPrinter)
+
+	printers := []ModernPrinter{&advancedPrinter, printerAdapter}
+
+	// TODO: Loop through printers and call Print on each
+	// YOUR CODE HERE
+	for _, printer := range printers {
+		err := printer.Print(sampleDoc)
+		if err != nil {
+			fmt.Printf("Error printing with %T: %v\n", printer, err)
+		}
 	}
 }
 
 // ===== DECORATOR PATTERN =====
 
+// TODO: Define Coffee interface with:
+// - Cost() float64 method
+// - Description() string method
+// YOUR CODE HERE
 type Coffee interface {
 	Cost() float64
 	Description() string
 }
 
+// TODO: Define SimpleCoffee struct (empty struct)
+// YOUR CODE HERE
 type SimpleCoffee struct{}
 
+// TODO: Implement Cost() method for SimpleCoffee
+// Return 2.0
+// YOUR CODE HERE
 func (sc SimpleCoffee) Cost() float64 {
 	return 2.0
 }
 
+// TODO: Implement Description() method for SimpleCoffee
+// Return "Simple coffee"
+// YOUR CODE HERE
 func (sc SimpleCoffee) Description() string {
-	return "Simple coffee"
+	return "Simple Coffee"
 }
 
+// TODO: Define CoffeeDecorator struct with coffee Coffee field
+// YOUR CODE HERE
 type CoffeeDecorator struct {
 	coffee Coffee
 }
 
+// TODO: Define MilkDecorator struct that embeds CoffeeDecorator
+// YOUR CODE HERE
 type MilkDecorator struct {
 	CoffeeDecorator
 }
 
-func NewMilkDecorator(coffee Coffee) *MilkDecorator {
-	return &MilkDecorator{CoffeeDecorator{coffee: coffee}}
+// TODO: Implement NewMilkDecorator constructor
+// Takes Coffee parameter and returns *MilkDecorator
+// YOUR CODE HERE
+func NewMilkDecorator(c Coffee) *MilkDecorator {
+	return &MilkDecorator{CoffeeDecorator: CoffeeDecorator{coffee: c}}
 }
 
-func (md *MilkDecorator) Cost() float64 {
-	return md.coffee.Cost() + 0.5
+// TODO: Implement Cost() method for MilkDecorator
+// Return coffee.Cost() + 0.5
+// YOUR CODE HERE
+func (mk *MilkDecorator) Cost() float64 {
+	return mk.coffee.Cost() + 0.5
 }
 
-func (md *MilkDecorator) Description() string {
-	return md.coffee.Description() + ", milk"
+// TODO: Implement Description() method for MilkDecorator
+// Return coffee.Description() + ", milk"
+// YOUR CODE HERE
+func (mk *MilkDecorator) Description() string {
+	return mk.coffee.Description() + ", milk"
 }
 
+// TODO: Define SugarDecorator struct that embeds CoffeeDecorator
+// YOUR CODE HERE
 type SugarDecorator struct {
 	CoffeeDecorator
 }
 
-func NewSugarDecorator(coffee Coffee) *SugarDecorator {
-	return &SugarDecorator{CoffeeDecorator{coffee: coffee}}
+// TODO: Implement NewSugarDecorator constructor
+// YOUR CODE HERE
+func NewSugarDecorator(c Coffee) *SugarDecorator {
+	return &SugarDecorator{CoffeeDecorator: CoffeeDecorator{coffee: c}}
 }
 
-func (sd *SugarDecorator) Cost() float64 {
-	return sd.coffee.Cost() + 0.2
+// TODO: Implement Cost() method for SugarDecorator
+// Return coffee.Cost() + 0.2
+// YOUR CODE HERE
+func (s *SugarDecorator) Cost() float64 {
+	return s.coffee.Cost() + 0.2
 }
 
-func (sd *SugarDecorator) Description() string {
-	return sd.coffee.Description() + ", sugar"
+// TODO: Implement Description() method for SugarDecorator
+// Return coffee.Description() + ", sugar"
+// YOUR CODE HERE
+func (s *SugarDecorator) Description() string {
+	return s.coffee.Description() + ", sugar"
 }
 
+// TODO: Define WhipDecorator struct that embeds CoffeeDecorator
+// YOUR CODE HERE
 type WhipDecorator struct {
 	CoffeeDecorator
 }
 
-func NewWhipDecorator(coffee Coffee) *WhipDecorator {
-	return &WhipDecorator{CoffeeDecorator{coffee: coffee}}
+// TODO: Implement NewWhipDecorator constructor
+// YOUR CODE HERE
+func NewWhipDecorator(c Coffee) *WhipDecorator {
+	return &WhipDecorator{CoffeeDecorator: CoffeeDecorator{coffee: c}}
 }
 
-func (wd *WhipDecorator) Cost() float64 {
-	return wd.coffee.Cost() + 0.7
+// TODO: Implement Cost() method for WhipDecorator
+// Return coffee.Cost() + 0.7
+// YOUR CODE HERE
+func (w *WhipDecorator) Cost() float64 {
+	return w.coffee.Cost() + 0.7
 }
 
-func (wd *WhipDecorator) Description() string {
-	return wd.coffee.Description() + ", whipped cream"
+// TODO: Implement Description() method for WhipDecorator
+// Return coffee.Description() + ", whipped cream"
+// YOUR CODE HERE
+func (w *WhipDecorator) Description() string {
+	return w.coffee.Description() + ", whipped cream"
 }
 
 func demonstrateDecoratorPattern() {
 	fmt.Println("\n=== Decorator Pattern ===")
 
-	// Start with simple coffee
-	coffee := SimpleCoffee{}
-	fmt.Printf("☕ %s - $%.2f\n", coffee.Description(), coffee.Cost())
+	// TODO: Start with simple coffee and print its cost and description
+	// YOUR CODE HERE
+	sc := SimpleCoffee{}
+	fmt.Printf("Simple Coffee: %s ($%.2f)\n", sc.Description(), sc.Cost())
 
-	// Add milk
-	coffeeWithMilk := NewMilkDecorator(coffee)
-	fmt.Printf("☕ %s - $%.2f\n", coffeeWithMilk.Description(), coffeeWithMilk.Cost())
+	// TODO: Add milk decorator and print the result
+	// YOUR CODE HERE
+	milk := NewMilkDecorator(&sc)
+	fmt.Printf("Milk Coffee: %s ($%.2f)\n", milk.Description(), milk.Cost())
 
-	// Add sugar
-	coffeeWithMilkAndSugar := NewSugarDecorator(coffeeWithMilk)
-	fmt.Printf("☕ %s - $%.2f\n", coffeeWithMilkAndSugar.Description(), coffeeWithMilkAndSugar.Cost())
+	// TODO: Add sugar decorator to the milk coffee and print
+	// YOUR CODE HERE
+	sugar := NewSugarDecorator(milk)
+	fmt.Printf("Sugar Coffee: %s ($%.2f)\n", sugar.Description(), sugar.Cost())
 
-	// Add whipped cream
-	fancyCoffee := NewWhipDecorator(coffeeWithMilkAndSugar)
-	fmt.Printf("☕ %s - $%.2f\n", fancyCoffee.Description(), fancyCoffee.Cost())
+	// TODO: Add whipped cream decorator and print the final result
+	// YOUR CODE HERE
+	whip := NewWhipDecorator(sugar)
+	fmt.Printf("Whipped Cream Coffee: %s ($%.2f)\n", whip.Description(), whip.Cost())
 
-	fmt.Println("\nCustom combinations:")
+	// TODO: Create different coffee combinations and print them
+	// YOUR CODE HERE
 
-	// Different combinations
-	combinations := []Coffee{
-		NewSugarDecorator(SimpleCoffee{}),
-		NewWhipDecorator(NewMilkDecorator(SimpleCoffee{})),
-		NewMilkDecorator(NewSugarDecorator(NewWhipDecorator(SimpleCoffee{}))),
-	}
+	fmt.Println("Different coffee combinations:")
 
-	for i, combo := range combinations {
-		fmt.Printf("%d. ☕ %s - $%.2f\n", i+1, combo.Description(), combo.Cost())
-	}
+	latte := NewMilkDecorator(&SimpleCoffee{})
+	fmt.Printf("Latte: %s ($%.2f)\n", latte.Description(), latte.Cost())
+
+	mocha := NewWhipDecorator(NewSugarDecorator(NewMilkDecorator(&SimpleCoffee{})))
+	fmt.Printf("Mocha: %s ($%.2f)\n", mocha.Description(), mocha.Cost())
+
+	americano := NewSugarDecorator(NewMilkDecorator(&SimpleCoffee{}))
+	fmt.Printf("Americano: %s ($%.2f)\n", americano.Description(), americano.Cost())
+
 }
 
 // ===== POLYMORPHIC BEHAVIOR WITH RANDOM SELECTION =====
 
+// TODO: Define GameCharacter interface with:
+// - Attack() string method
+// - Defend() string method
+// - GetHealth() int method
+// - TakeDamage(damage int) method
+// YOUR CODE HERE
 type GameCharacter interface {
 	Attack() string
 	Defend() string
@@ -580,148 +853,195 @@ type GameCharacter interface {
 	TakeDamage(damage int)
 }
 
+// TODO: Define Warrior struct with name (string), health (int), armor (int) fields
+// YOUR CODE HERE
 type Warrior struct {
-	name   string
-	health int
-	armor  int
+	Name   string
+	Health int
+	Armor  int
 }
 
+// TODO: Implement NewWarrior constructor
+// Initialize with health 100, armor 20
+// YOUR CODE HERE
 func NewWarrior(name string) *Warrior {
-	return &Warrior{name: name, health: 100, armor: 20}
+	return &Warrior{
+		Name:   name,
+		Health: 100,
+		Armor:  20,
+	}
 }
 
+// TODO: Implement Attack() method for Warrior
+// - Generate random damage: 25 + rand.Intn(10)
+// - Return "[name] swings sword for [damage] damage!"
+// YOUR CODE HERE
 func (w *Warrior) Attack() string {
 	damage := 25 + rand.Intn(10)
-	return fmt.Sprintf("%s swings sword for %d damage!", w.name, damage)
+	return fmt.Sprintf("%s swings sword for %d damage!", w.Name, damage)
 }
 
+// TODO: Implement Defend() method for Warrior
+// Return "[name] raises shield (armor: [armor])"
+// YOUR CODE HERE
 func (w *Warrior) Defend() string {
-	return fmt.Sprintf("%s raises shield (armor: %d)", w.name, w.armor)
+	return fmt.Sprintf("%s raises shield (armor: %d)", w.Name, w.Armor)
 }
 
+// TODO: Implement GetHealth() method for Warrior
+// Return health field
+// YOUR CODE HERE
 func (w *Warrior) GetHealth() int {
-	return w.health
+	return w.Health
 }
 
+// TODO: Implement TakeDamage(damage int) method for Warrior
+// - Calculate actual damage: damage - armor/2 (minimum 0)
+// - Reduce health by actual damage
+// - Ensure health doesn't go below 0
+// YOUR CODE HERE
 func (w *Warrior) TakeDamage(damage int) {
-	actualDamage := damage - w.armor/2
+	actualDamage := damage - w.Armor/2
 	if actualDamage < 0 {
 		actualDamage = 0
 	}
-	w.health -= actualDamage
-	if w.health < 0 {
-		w.health = 0
+	w.Health -= actualDamage
+	if w.Health < 0 {
+		w.Health = 0
 	}
 }
 
+// TODO: Define Mage struct with name (string), health (int), mana (int) fields
+// YOUR CODE HERE
 type Mage struct {
-	name   string
-	health int
-	mana   int
+	Name   string
+	Health int
+	Mana   int
 }
+
+// TODO: Implement NewMage constructor
+// Initialize with health 70, mana 100
+// YOUR CODE HERE
 
 func NewMage(name string) *Mage {
-	return &Mage{name: name, health: 70, mana: 100}
+	return &Mage{
+		Name:   name,
+		Health: 70,
+		Mana:   100,
+	}
 }
+
+// TODO: Implement Attack() method for Mage
+// - If mana >= 20: reduce mana by 20, generate damage 30 + rand.Intn(15)
+// - Return "[name] casts fireball for [damage] damage! (mana: [mana])"
+// - If mana < 20: return "[name] has no mana for spells!"
+// YOUR CODE HERE
 
 func (m *Mage) Attack() string {
-	if m.mana >= 20 {
-		m.mana -= 20
+	if m.Mana >= 20 {
 		damage := 30 + rand.Intn(15)
-		return fmt.Sprintf("%s casts fireball for %d damage! (mana: %d)", m.name, damage, m.mana)
+		m.Mana -= 20
+		return fmt.Sprintf("%s casts fireball for %d damage! (mana: %d)", m.Name, damage, m.Mana)
 	}
-	return fmt.Sprintf("%s has no mana for spells!", m.name)
+	return fmt.Sprintf("%s has no mana for spells!", m.Name)
 }
 
+// TODO: Implement Defend() method for Mage
+// - If mana >= 10: reduce mana by 10, return "[name] casts magic shield (mana: [mana])"
+// - If mana < 10: return "[name] dodges attack"
+// YOUR CODE HERE
 func (m *Mage) Defend() string {
-	if m.mana >= 10 {
-		m.mana -= 10
-		return fmt.Sprintf("%s casts magic shield (mana: %d)", m.name, m.mana)
+	if m.Mana >= 10 {
+		m.Mana -= 10
+		return fmt.Sprintf("%s casts magic shield (mana: %d)", m.Name, m.Mana)
 	}
-	return fmt.Sprintf("%s dodges attack", m.name)
+	return fmt.Sprintf("%s dodges attack", m.Name)
 }
 
+// TODO: Implement GetHealth() method for Mage
+// Return health field
+// YOUR CODE HERE
 func (m *Mage) GetHealth() int {
-	return m.health
+	return m.Health
 }
 
+// TODO: Implement TakeDamage(damage int) method for Mage
+// - Reduce health by damage
+// - Ensure health doesn't go below 0
+// YOUR CODE HERE
 func (m *Mage) TakeDamage(damage int) {
-	m.health -= damage
-	if m.health < 0 {
-		m.health = 0
+	m.Health -= damage
+	if m.Health < 0 {
+		m.Health = 0
 	}
 }
 
 func demonstrateGamePolymorphism() {
 	fmt.Println("\n=== Game Character Polymorphism ===")
 
-	characters := []GameCharacter{
-		NewWarrior("Conan"),
-		NewMage("Gandalf"),
-		NewWarrior("Aragorn"),
-		NewMage("Merlin"),
-	}
+	// TODO: Create a slice of GameCharacter with Warrior and Mage instances
+	// YOUR CODE HERE
+	garen := NewWarrior("Garen")
+	zoe := NewMage("Zoe")
+	characters := []GameCharacter{garen, zoe}
 
+	// TODO: Print "🗡️ Battle Simulation!"
+	// YOUR CODE HERE
 	fmt.Println("🗡️ Battle Simulation!")
-
+	// TODO: Simulate 3 rounds of battle
+	// For each round:
+	// - Print round number
+	// - For each character with health > 0: randomly attack or defend
+	// - Apply random damage to all characters
+	// YOUR CODE HERE
 	for round := 1; round <= 3; round++ {
-		fmt.Printf("\nRound %d:\n", round)
-
-		for _, char := range characters {
-			if char.GetHealth() > 0 {
+		fmt.Printf("\n🔄 Round %d\n", round)
+		for _, character := range characters {
+			if character.GetHealth() > 0 {
 				action := rand.Intn(2)
 				if action == 0 {
-					fmt.Printf("  %s\n", char.Attack())
+					fmt.Printf("%s\n", character.Attack())
 				} else {
-					fmt.Printf("  %s\n", char.Defend())
+					fmt.Printf("%s\n", character.Defend())
 				}
 			}
-		}
-
-		// Simulate some damage
-		for _, char := range characters {
-			if char.GetHealth() > 0 {
-				damage := rand.Intn(15) + 5
-				char.TakeDamage(damage)
-			}
+			damage := rand.Intn(10) + 1
+			character.TakeDamage(damage)
 		}
 	}
 
-	fmt.Println("\nFinal Status:")
-	for i, char := range characters {
-		health := char.GetHealth()
-		status := "💀 KO"
-		if health > 0 {
-			status = "✅ Alive"
-		}
-		fmt.Printf("  Character %d: Health=%d %s\n", i+1, health, status)
+	// TODO: Print final status of all characters
+	// Show health and alive/KO status
+	// YOUR CODE HERE
+	fmt.Println("\n🏁 Final Status:")
+	for _, character := range characters {
+		fmt.Printf("%+v: Health: %d, Alive: %v\n", character, character.GetHealth(), character.GetHealth() > 0)
 	}
 }
 
 // ===== MAIN DEMO FUNCTION =====
 
-func runPolymorphismDemo() {
-	fmt.Println("🔄 Go Polymorphism and Design Patterns Tutorial")
+func main() {
+	fmt.Println("🔄 Go Polymorphism and Design Patterns Practice")
 	fmt.Println("===============================================")
 
 	rand.Seed(time.Now().UnixNano())
 
-	demonstrateBasicPolymorphism()
-	demonstrateStrategyPattern()
-	demonstrateObserverPattern()
-	demonstrateFactoryPattern()
-	demonstrateAdapterPattern()
-	demonstrateDecoratorPattern()
+	// demonstrateBasicPolymorphism()
+	// demonstrateStrategyPattern()
+	// TODO: Uncomment these as you implement them
+	// demonstrateObserverPattern()
+	// demonstrateFactoryPattern()
+	// demonstrateAdapterPattern()
+	// demonstrateDecoratorPattern()
 	demonstrateGamePolymorphism()
 
-	fmt.Println("\n✅ Polymorphism and design patterns covered!")
-	fmt.Println("\n🎯 Key Points:")
-	fmt.Println("- Polymorphism enables different types to be treated uniformly")
-	fmt.Println("- Strategy pattern allows algorithm selection at runtime")
-	fmt.Println("- Observer pattern enables loose coupling between objects")
-	fmt.Println("- Factory pattern abstracts object creation")
-	fmt.Println("- Adapter pattern makes incompatible interfaces work together")
-	fmt.Println("- Decorator pattern adds behavior without modifying original types")
-	fmt.Println("- Interfaces enable flexible and maintainable design patterns")
-	fmt.Println("- Go's implicit interface satisfaction makes patterns natural")
+	fmt.Println("\n✅ Polymorphism practice completed!")
+	fmt.Println("\n🎯 Learning Goals:")
+	fmt.Println("- Understand polymorphism through interfaces")
+	fmt.Println("- Implement Strategy pattern for algorithm selection")
+	fmt.Println("- Apply Observer pattern for event notification")
+	fmt.Println("- Use Factory pattern for object creation")
+	fmt.Println("- Implement Adapter pattern for interface compatibility")
+	fmt.Println("- Apply Decorator pattern for behavior extension")
 }

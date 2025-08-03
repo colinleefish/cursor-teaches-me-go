@@ -1,291 +1,215 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"sort"
-	"strings"
-	"time"
 )
 
 // ===== fmt.Stringer INTERFACE =====
 
-// fmt.Stringer is one of the most common interfaces in Go
-// type Stringer interface {
-//     String() string
-// }
+// TODO: Understand fmt.Stringer interface
+// The fmt.Stringer interface has one method: String() string
+// When you implement this, fmt.Print, fmt.Printf %s, %v will use your String() method
 
-type PersonStringer struct {
-	Name string
-	Age  int
-	City string
-}
+// TODO: Define a PersonStringer struct with Name (string), Age (int), City (string) fields
+// YOUR CODE HERE
 
-func (p PersonStringer) String() string {
-	return fmt.Sprintf("%s (%d years old) from %s", p.Name, p.Age, p.City)
-}
+// TODO: Implement String() method for PersonStringer
+// Should return "[Name] ([Age] years old) from [City]"
+// YOUR CODE HERE
 
-type BankAccount struct {
-	AccountNumber string
-	Balance       float64
-	Owner         string
-}
+// TODO: Define a BankAccount struct with AccountNumber (string), Balance (float64), Owner (string)
+// YOUR CODE HERE
 
-func (ba BankAccount) String() string {
-	// Mask account number for security
-	masked := strings.Repeat("*", len(ba.AccountNumber)-4) + ba.AccountNumber[len(ba.AccountNumber)-4:]
-	return fmt.Sprintf("Account %s - Balance: $%.2f (Owner: %s)", masked, ba.Balance, ba.Owner)
-}
+// TODO: Implement String() method for BankAccount
+// Mask account number for security (show only last 4 digits)
+// Should return "Account ****[last4] - Balance: $[balance] (Owner: [owner])"
+// Hint: Use strings.Repeat("*", count) to create asterisks
+// YOUR CODE HERE
 
 func demonstrateStringer() {
 	fmt.Println("=== fmt.Stringer Interface ===")
 
-	person := PersonStringer{Name: "Alice", Age: 30, City: "New York"}
-	account := BankAccount{
-		AccountNumber: "1234567890",
-		Balance:       1500.75,
-		Owner:         "Alice Johnson",
-	}
+	// TODO: Create a PersonStringer instance with sample data
+	// YOUR CODE HERE
 
-	// String() method called automatically by fmt package
-	fmt.Printf("Person: %s\n", person)
-	fmt.Printf("Account: %s\n", account)
+	// TODO: Create a BankAccount instance with sample data
+	// YOUR CODE HERE
 
-	// Also works with Printf verbs
-	fmt.Printf("Person details: %v\n", person)
-	fmt.Printf("Account info: %v\n", account)
+	// TODO: Print both using %s (this will call String() method automatically)
+	// YOUR CODE HERE
 
-	// Slice of Stringers
-	items := []fmt.Stringer{person, account}
-	fmt.Println("\nAll items:")
-	for i, item := range items {
-		fmt.Printf("  %d. %s\n", i+1, item)
-	}
+	// TODO: Print both using %v (this also calls String() method)
+	// YOUR CODE HERE
+
+	// TODO: Create a slice of fmt.Stringer containing both person and account
+	// Loop through and print each item
+	// YOUR CODE HERE
 }
 
 // ===== io.Reader INTERFACE =====
 
-// io.Reader is fundamental for reading data
-// type Reader interface {
-//     Read([]byte) (n int, err error)
-// }
+// TODO: Understand io.Reader interface
+// The io.Reader interface has one method: Read([]byte) (n int, err error)
+// It reads data into the provided byte slice and returns bytes read and error
+// Return io.EOF when no more data to read
 
-type StringReader struct {
-	data     string
-	position int
-}
+// TODO: Define a StringReader struct with data (string) and position (int) fields
+// YOUR CODE HERE
 
-func NewStringReader(data string) *StringReader {
-	return &StringReader{data: data, position: 0}
-}
+// TODO: Implement NewStringReader constructor function
+// Should return *StringReader with given data and position 0
+// YOUR CODE HERE
 
-func (sr *StringReader) Read(p []byte) (n int, err error) {
-	if sr.position >= len(sr.data) {
-		return 0, io.EOF
-	}
+// TODO: Implement Read method for StringReader (use pointer receiver)
+// - Return 0, io.EOF if position >= len(data)
+// - Use copy(p, sr.data[sr.position:]) to copy data
+// - Update position and return bytes copied
+// YOUR CODE HERE
 
-	n = copy(p, sr.data[sr.position:])
-	sr.position += n
-	return n, nil
-}
+// TODO: Define UpperCaseReader struct that wraps another io.Reader
+// Should have reader field of type io.Reader
+// YOUR CODE HERE
 
-// UpperCaseReader wraps another reader and converts to uppercase
-type UpperCaseReader struct {
-	reader io.Reader
-}
+// TODO: Implement NewUpperCaseReader constructor
+// YOUR CODE HERE
 
-func NewUpperCaseReader(reader io.Reader) *UpperCaseReader {
-	return &UpperCaseReader{reader: reader}
-}
-
-func (ucr *UpperCaseReader) Read(p []byte) (n int, err error) {
-	n, err = ucr.reader.Read(p)
-	for i := 0; i < n; i++ {
-		if p[i] >= 'a' && p[i] <= 'z' {
-			p[i] = p[i] - 'a' + 'A'
-		}
-	}
-	return n, err
-}
+// TODO: Implement Read method for UpperCaseReader
+// - Call wrapped reader's Read method first
+// - Convert lowercase letters to uppercase in the byte slice
+// - Check if p[i] >= 'a' && p[i] <= 'z', then p[i] = p[i] - 'a' + 'A'
+// YOUR CODE HERE
 
 func demonstrateReader() {
 	fmt.Println("\n=== io.Reader Interface ===")
 
-	// Original reader
-	original := NewStringReader("hello world from go!")
+	// TODO: Create a StringReader with some sample text
+	// YOUR CODE HERE
 
-	// Wrapped reader
-	upperReader := NewUpperCaseReader(original)
+	// TODO: Wrap it with UpperCaseReader
+	// YOUR CODE HERE
 
-	// Read all data
-	data, err := io.ReadAll(upperReader)
-	if err != nil {
-		fmt.Printf("Error reading: %v\n", err)
-		return
-	}
+	// TODO: Use io.ReadAll to read all data and handle error
+	// Print original text and uppercase result
+	// YOUR CODE HERE
 
-	fmt.Printf("Original: hello world from go!\n")
-	fmt.Printf("Uppercase: %s\n", string(data))
+	// TODO: Demonstrate with standard library strings.NewReader
+	// Use io.ReadAll to read the data
+	// YOUR CODE HERE
 
-	// Working with standard library readers
-	fmt.Println("\nUsing strings.NewReader:")
-	standardReader := strings.NewReader("this is from strings.NewReader")
-	standardData, _ := io.ReadAll(standardReader)
-	fmt.Printf("Read: %s\n", string(standardData))
-
-	// Chain multiple readers
-	fmt.Println("\nChaining readers:")
-	chainedReader := NewUpperCaseReader(strings.NewReader("chained reader example"))
-	chainedData, _ := io.ReadAll(chainedReader)
-	fmt.Printf("Chained result: %s\n", string(chainedData))
+	// TODO: Chain readers - wrap strings.NewReader with UpperCaseReader
+	// Read and print the result
+	// YOUR CODE HERE
 }
 
 // ===== io.Writer INTERFACE =====
 
-// io.Writer is fundamental for writing data
-// type Writer interface {
-//     Write([]byte) (n int, err error)
-// }
+// TODO: Understand io.Writer interface
+// The io.Writer interface has one method: Write([]byte) (n int, err error)
+// It writes data from byte slice and returns bytes written and error
 
-type LogWriter struct {
-	prefix string
-}
+// TODO: Define LogWriter struct with prefix (string) field
+// YOUR CODE HERE
 
-func NewLogWriter(prefix string) *LogWriter {
-	return &LogWriter{prefix: prefix}
-}
+// TODO: Implement NewLogWriter constructor
+// YOUR CODE HERE
 
-func (lw *LogWriter) Write(p []byte) (n int, err error) {
-	timestamp := time.Now().Format("15:04:05")
-	message := fmt.Sprintf("[%s] %s: %s", timestamp, lw.prefix, string(p))
-	fmt.Print(message)
-	return len(p), nil
-}
+// TODO: Implement Write method for LogWriter
+// - Get timestamp with time.Now().Format("15:04:05")
+// - Format message as "[timestamp] prefix: content"
+// - Print the message and return len(p), nil
+// YOUR CODE HERE
 
-type MemoryWriter struct {
-	buffer []byte
-}
+// TODO: Define MemoryWriter struct with buffer ([]byte) field
+// YOUR CODE HERE
 
-func NewMemoryWriter() *MemoryWriter {
-	return &MemoryWriter{buffer: make([]byte, 0)}
-}
+// TODO: Implement NewMemoryWriter constructor
+// Initialize with empty byte slice using make([]byte, 0)
+// YOUR CODE HERE
 
-func (mw *MemoryWriter) Write(p []byte) (n int, err error) {
-	mw.buffer = append(mw.buffer, p...)
-	return len(p), nil
-}
+// TODO: Implement Write method for MemoryWriter
+// Append p to buffer using append(mw.buffer, p...)
+// Return len(p), nil
+// YOUR CODE HERE
 
-func (mw *MemoryWriter) String() string {
-	return string(mw.buffer)
-}
+// TODO: Implement String() method for MemoryWriter
+// Convert buffer to string and return
+// YOUR CODE HERE
 
-func (mw *MemoryWriter) Reset() {
-	mw.buffer = mw.buffer[:0]
-}
+// TODO: Implement Reset() method for MemoryWriter
+// Reset buffer to empty: mw.buffer = mw.buffer[:0]
+// YOUR CODE HERE
 
 func demonstrateWriter() {
 	fmt.Println("\n=== io.Writer Interface ===")
 
-	// Log writer
-	logger := NewLogWriter("APP")
-	logger.Write([]byte("Application started\n"))
-	logger.Write([]byte("Processing request\n"))
+	// TODO: Create a LogWriter with prefix "APP"
+	// YOUR CODE HERE
 
-	// Memory writer
-	memory := NewMemoryWriter()
-	memory.Write([]byte("Hello "))
-	memory.Write([]byte("World "))
-	memory.Write([]byte("from memory!\n"))
+	// TODO: Write some log messages using Write method
+	// Convert strings to []byte for writing
+	// YOUR CODE HERE
 
-	fmt.Printf("Memory buffer contains: %s", memory.String())
+	// TODO: Create a MemoryWriter and write some data to it
+	// YOUR CODE HERE
 
-	// Using with fmt.Fprintf
-	fmt.Println("\nUsing with fmt.Fprintf:")
-	fmt.Fprintf(logger, "User %s logged in\n", "alice")
-	fmt.Fprintf(memory, "Current time: %s\n", time.Now().Format("15:04:05"))
-	fmt.Printf("Memory after fprintf: %s", memory.String())
+	// TODO: Print the memory buffer contents using String() method
+	// YOUR CODE HERE
+
+	// TODO: Demonstrate fmt.Fprintf with both writers
+	// fmt.Fprintf accepts io.Writer as first argument
+	// YOUR CODE HERE
 }
 
 // ===== io.ReadWriter INTERFACE =====
 
-type InMemoryFile struct {
-	content  []byte
-	position int
-}
+// TODO: Define InMemoryFile struct with content ([]byte) and position (int) fields
+// This will implement both io.Reader and io.Writer (so it's an io.ReadWriter)
+// YOUR CODE HERE
 
-func NewInMemoryFile() *InMemoryFile {
-	return &InMemoryFile{
-		content:  make([]byte, 0),
-		position: 0,
-	}
-}
+// TODO: Implement NewInMemoryFile constructor
+// Initialize with empty content slice and position 0
+// YOUR CODE HERE
 
-func (imf *InMemoryFile) Read(p []byte) (n int, err error) {
-	if imf.position >= len(imf.content) {
-		return 0, io.EOF
-	}
+// TODO: Implement Read method for InMemoryFile (similar to StringReader)
+// - Return 0, io.EOF if position >= len(content)
+// - Copy data from content[position:] to p
+// - Update position and return bytes copied
+// YOUR CODE HERE
 
-	n = copy(p, imf.content[imf.position:])
-	imf.position += n
-	return n, nil
-}
+// TODO: Implement Write method for InMemoryFile
+// - Append p to content using append(imf.content, p...)
+// - Return len(p), nil
+// YOUR CODE HERE
 
-func (imf *InMemoryFile) Write(p []byte) (n int, err error) {
-	imf.content = append(imf.content, p...)
-	return len(p), nil
-}
-
-func (imf *InMemoryFile) Seek(offset int64, whence int) (int64, error) {
-	switch whence {
-	case io.SeekStart:
-		imf.position = int(offset)
-	case io.SeekCurrent:
-		imf.position += int(offset)
-	case io.SeekEnd:
-		imf.position = len(imf.content) + int(offset)
-	}
-
-	if imf.position < 0 {
-		imf.position = 0
-	}
-	if imf.position > len(imf.content) {
-		imf.position = len(imf.content)
-	}
-
-	return int64(imf.position), nil
-}
+// TODO: Implement Seek method for InMemoryFile
+// Parameters: offset (int64), whence (int)
+// Handle io.SeekStart, io.SeekCurrent, io.SeekEnd
+// Clamp position between 0 and len(content)
+// Return final position as int64
+// YOUR CODE HERE
 
 func demonstrateReadWriter() {
 	fmt.Println("\n=== io.ReadWriter Interface ===")
 
-	file := NewInMemoryFile()
+	// TODO: Create a new InMemoryFile
+	// YOUR CODE HERE
 
-	// Write some data
-	file.Write([]byte("Line 1: Hello World\n"))
-	file.Write([]byte("Line 2: Go Programming\n"))
-	file.Write([]byte("Line 3: Interfaces Rock!\n"))
+	// TODO: Write several lines of data to the file
+	// YOUR CODE HERE
 
-	// Reset position to beginning
-	file.Seek(0, io.SeekStart)
+	// TODO: Reset position to beginning using Seek(0, io.SeekStart)
+	// YOUR CODE HERE
 
-	// Read all data
-	fmt.Println("Reading from in-memory file:")
-	data, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	} else {
-		fmt.Print(string(data))
-	}
+	// TODO: Read all data using io.ReadAll and print it
+	// Handle the error properly
+	// YOUR CODE HERE
 
-	// Append more data
-	file.Write([]byte("Line 4: Appended data\n"))
+	// TODO: Append more data to the file
+	// YOUR CODE HERE
 
-	// Read from current position
-	fmt.Println("\nReading new data:")
-	file.Seek(0, io.SeekStart)
-	newData, _ := io.ReadAll(file)
-	fmt.Print(string(newData))
+	// TODO: Reset to beginning and read all data again
+	// Show that new data was appended
+	// YOUR CODE HERE
 }
 
 // ===== sort.Interface =====
@@ -297,64 +221,49 @@ func demonstrateReadWriter() {
 //     Swap(i, j int)
 // }
 
-type Student struct {
-	Name  string
-	Grade float64
-	Age   int
-}
+// TODO: Define Student struct with Name (string), Grade (float64), Age (int) fields
+// YOUR CODE HERE
 
-type ByGrade []Student
+// TODO: Define ByGrade type as []Student and implement sort.Interface
+// - Len() should return length of slice
+// - Less(i, j) should sort by Grade in descending order
+// - Swap(i, j) should swap elements i and j
+// YOUR CODE HERE
 
-func (bg ByGrade) Len() int           { return len(bg) }
-func (bg ByGrade) Less(i, j int) bool { return bg[i].Grade > bg[j].Grade } // Descending
-func (bg ByGrade) Swap(i, j int)      { bg[i], bg[j] = bg[j], bg[i] }
+// TODO: Define ByAge type as []Student and implement sort.Interface
+// - Len() should return length of slice
+// - Less(i, j) should sort by Age in ascending order
+// - Swap(i, j) should swap elements i and j
+// YOUR CODE HERE
 
-type ByAge []Student
-
-func (ba ByAge) Len() int           { return len(ba) }
-func (ba ByAge) Less(i, j int) bool { return ba[i].Age < ba[j].Age } // Ascending
-func (ba ByAge) Swap(i, j int)      { ba[i], ba[j] = ba[j], ba[i] }
-
-type ByName []Student
-
-func (bn ByName) Len() int           { return len(bn) }
-func (bn ByName) Less(i, j int) bool { return bn[i].Name < bn[j].Name }
-func (bn ByName) Swap(i, j int)      { bn[i], bn[j] = bn[j], bn[i] }
+// TODO: Define ByName type as []Student and implement sort.Interface
+// - Len() should return length of slice
+// - Less(i, j) should sort by Name alphabetically
+// - Swap(i, j) should swap elements i and j
+// YOUR CODE HERE
 
 func demonstrateSortInterface() {
 	fmt.Println("\n=== sort.Interface ===")
 
-	students := []Student{
-		{Name: "Alice", Grade: 85.5, Age: 20},
-		{Name: "Bob", Grade: 92.0, Age: 19},
-		{Name: "Charlie", Grade: 78.5, Age: 21},
-		{Name: "Diana", Grade: 96.0, Age: 18},
-	}
+	// TODO: Create a slice of students with sample data
+	// YOUR CODE HERE
 
-	fmt.Println("Original students:")
-	printStudents(students)
+	// TODO: Print original students
+	// YOUR CODE HERE
 
-	// Sort by grade (descending)
-	sort.Sort(ByGrade(students))
-	fmt.Println("\nSorted by grade (highest first):")
-	printStudents(students)
+	// TODO: Sort by grade (descending) and print
+	// YOUR CODE HERE
 
-	// Sort by age (ascending)
-	sort.Sort(ByAge(students))
-	fmt.Println("\nSorted by age (youngest first):")
-	printStudents(students)
+	// TODO: Sort by age (ascending) and print
+	// YOUR CODE HERE
 
-	// Sort by name (alphabetical)
-	sort.Sort(ByName(students))
-	fmt.Println("\nSorted by name (alphabetical):")
-	printStudents(students)
+	// TODO: Sort by name (alphabetical) and print
+	// YOUR CODE HERE
 }
 
-func printStudents(students []Student) {
-	for _, student := range students {
-		fmt.Printf("  %s: Grade=%.1f, Age=%d\n", student.Name, student.Grade, student.Age)
-	}
-}
+// Helper function to print students
+// TODO: Implement printStudents function
+// YOUR CODE HERE
 
 // ===== error INTERFACE =====
 
@@ -363,248 +272,161 @@ func printStudents(students []Student) {
 //     Error() string
 // }
 
-type ValidationErrorCustom struct {
-	Field   string
-	Value   interface{}
-	Message string
-}
+// TODO: Define ValidationErrorCustom struct with Field (string), Value (interface{}), Message (string) fields
+// YOUR CODE HERE
 
-func (ve ValidationErrorCustom) Error() string {
-	return fmt.Sprintf("validation failed for field '%s' with value '%v': %s",
-		ve.Field, ve.Value, ve.Message)
-}
+// TODO: Implement Error() method for ValidationErrorCustom
+// Should return "validation failed for field '[Field]' with value '[Value]': [Message]"
+// YOUR CODE HERE
 
-type NetworkErrorCustom struct {
-	Operation string
-	URL       string
-	Code      int
-	Timestamp time.Time
-}
+// TODO: Define NetworkErrorCustom struct with Operation (string), URL (string), Code (int), Timestamp (time.Time) fields
+// YOUR CODE HERE
 
-func (ne NetworkErrorCustom) Error() string {
-	return fmt.Sprintf("network error during %s to %s: HTTP %d at %s",
-		ne.Operation, ne.URL, ne.Code, ne.Timestamp.Format("15:04:05"))
-}
+// TODO: Implement Error() method for NetworkErrorCustom
+// Should return "network error during [Operation] to [URL]: HTTP [Code] at [Timestamp]"
+// Format timestamp using Format("15:04:05")
+// YOUR CODE HERE
 
-// Implementing multiple interfaces
-func (ne NetworkErrorCustom) String() string {
-	return fmt.Sprintf("NetworkError{Op: %s, URL: %s, Code: %d}",
-		ne.Operation, ne.URL, ne.Code)
-}
+// TODO: Implement String() method for NetworkErrorCustom (fmt.Stringer)
+// Should return "NetworkError{Op: [Operation], URL: [URL], Code: [Code]}"
+// YOUR CODE HERE
 
 func demonstrateErrorInterface() {
 	fmt.Println("\n=== error Interface ===")
 
-	// Custom validation error
-	valErr := ValidationErrorCustom{
-		Field:   "email",
-		Value:   "invalid-email",
-		Message: "must contain @ symbol",
-	}
+	// TODO: Create sample validation and network errors
+	// YOUR CODE HERE
 
-	// Custom network error
-	netErr := NetworkErrorCustom{
-		Operation: "GET",
-		URL:       "https://api.example.com/users",
-		Code:      404,
-		Timestamp: time.Now(),
-	}
+	// TODO: Create slice of error interface containing both errors
+	// YOUR CODE HERE
 
-	// Using as error interface
-	errors := []error{valErr, netErr}
+	// TODO: Range over errors and print each one
+	// YOUR CODE HERE
 
-	fmt.Println("Handling errors:")
-	for i, err := range errors {
-		fmt.Printf("Error %d: %v\n", i+1, err)
-	}
-
-	// Type assertions to get specific behavior
-	fmt.Println("\nDetailed error analysis:")
-	for _, err := range errors {
-		switch e := err.(type) {
-		case ValidationErrorCustom:
-			fmt.Printf("Validation issue in field: %s\n", e.Field)
-		case NetworkErrorCustom:
-			fmt.Printf("Network problem with status: %d\n", e.Code)
-			// NetworkError also implements Stringer
-			fmt.Printf("  Details: %s\n", e.String())
-		default:
-			fmt.Printf("Unknown error type: %T\n", e)
-		}
-	}
+	// TODO: Use type assertion to handle each error type specifically
+	// For ValidationErrorCustom: Print field name
+	// For NetworkErrorCustom: Print status code and use String() method
+	// YOUR CODE HERE
 }
 
 // ===== COMBINING INTERFACES =====
 
-type Logger interface {
-	Log(message string)
-}
+// TODO: Define Logger interface with Log(message string) method
+// YOUR CODE HERE
 
-type FileSystemLogger interface {
-	Logger
-	io.Writer
-	SetLogLevel(level string)
-}
+// TODO: Define FileSystemLogger interface that combines Logger and io.Writer
+// Also add SetLogLevel(level string) method
+// YOUR CODE HERE
 
-type ConsoleFileLogger struct {
-	logLevel string
-	buffer   *bytes.Buffer
-}
+// TODO: Define ConsoleFileLogger struct with logLevel (string) and buffer (*bytes.Buffer) fields
+// YOUR CODE HERE
 
-func NewConsoleFileLogger() *ConsoleFileLogger {
-	return &ConsoleFileLogger{
-		logLevel: "INFO",
-		buffer:   bytes.NewBuffer(nil),
-	}
-}
+// TODO: Implement NewConsoleFileLogger constructor
+// Initialize with "INFO" level and new buffer
+// YOUR CODE HERE
 
-func (cfl *ConsoleFileLogger) Log(message string) {
-	timestamp := time.Now().Format("2006-01-02 15:04:05")
-	logEntry := fmt.Sprintf("[%s] %s: %s\n", timestamp, cfl.logLevel, message)
+// TODO: Implement Log method for ConsoleFileLogger
+// - Format with timestamp, level, message
+// - Write to console and buffer
+// YOUR CODE HERE
 
-	// Write to console
-	fmt.Print(logEntry)
+// TODO: Implement Write method for ConsoleFileLogger (io.Writer)
+// - Convert bytes to string, trim space
+// - Call Log method
+// - Return length and nil error
+// YOUR CODE HERE
 
-	// Write to buffer (simulating file)
-	cfl.buffer.WriteString(logEntry)
-}
+// TODO: Implement SetLogLevel method
+// YOUR CODE HERE
 
-func (cfl *ConsoleFileLogger) Write(p []byte) (n int, err error) {
-	message := strings.TrimSpace(string(p))
-	cfl.Log(message)
-	return len(p), nil
-}
-
-func (cfl *ConsoleFileLogger) SetLogLevel(level string) {
-	cfl.logLevel = level
-}
-
-func (cfl *ConsoleFileLogger) GetBufferedLogs() string {
-	return cfl.buffer.String()
-}
+// TODO: Implement GetBufferedLogs method to return buffer contents
+// YOUR CODE HERE
 
 func demonstrateInterfaceCombination() {
 	fmt.Println("\n=== Combining Interfaces ===")
 
-	logger := NewConsoleFileLogger()
+	// TODO: Create new logger
+	// YOUR CODE HERE
 
-	// Use as Logger interface
-	var log Logger = logger
-	log.Log("Application started")
+	// TODO: Use as Logger interface
+	// YOUR CODE HERE
 
-	// Use as io.Writer interface
-	var writer io.Writer = logger
-	fmt.Fprintf(writer, "User %s logged in", "alice")
+	// TODO: Use as io.Writer interface with fmt.Fprintf
+	// YOUR CODE HERE
 
-	// Use as FileSystemLogger interface (composed)
-	var fsLogger FileSystemLogger = logger
-	fsLogger.SetLogLevel("ERROR")
-	fsLogger.Log("Critical system error")
+	// TODO: Use as FileSystemLogger interface
+	// YOUR CODE HERE
 
-	// Show buffered content
-	fmt.Println("\nBuffered logs:")
-	fmt.Print(logger.GetBufferedLogs())
+	// TODO: Show buffered logs
+	// YOUR CODE HERE
 }
 
 // ===== INTERFACE COMPOSITION PATTERNS =====
 
-type Processor interface {
-	Process(data string) (string, error)
-}
+// TODO: Define Processor interface with Process(data string) (string, error) method
+// YOUR CODE HERE
 
-type Validator interface {
-	Validate(data string) error
-}
+// TODO: Define Validator interface with Validate(data string) error method
+// YOUR CODE HERE
 
-type ProcessorValidator interface {
-	Processor
-	Validator
-}
+// TODO: Define ProcessorValidator interface combining both interfaces
+// YOUR CODE HERE
 
-type EmailProcessor struct {
-	domain string
-}
+// TODO: Define EmailProcessor struct with domain (string) field
+// YOUR CODE HERE
 
-func NewEmailProcessor(domain string) *EmailProcessor {
-	return &EmailProcessor{domain: domain}
-}
+// TODO: Implement NewEmailProcessor constructor
+// YOUR CODE HERE
 
-func (ep *EmailProcessor) Validate(email string) error {
-	if !strings.Contains(email, "@") {
-		return fmt.Errorf("email must contain @ symbol")
-	}
-	if !strings.HasSuffix(email, ep.domain) {
-		return fmt.Errorf("email must be from domain %s", ep.domain)
-	}
-	return nil
-}
+// TODO: Implement Validate method for EmailProcessor
+// - Check if email contains @
+// - Check if email ends with correct domain
+// - Return appropriate errors
+// YOUR CODE HERE
 
-func (ep *EmailProcessor) Process(email string) (string, error) {
-	if err := ep.Validate(email); err != nil {
-		return "", fmt.Errorf("processing failed: %w", err)
-	}
-
-	// Normalize email
-	normalized := strings.ToLower(strings.TrimSpace(email))
-	return normalized, nil
-}
+// TODO: Implement Process method for EmailProcessor
+// - Call Validate first
+// - If valid, normalize email (lowercase, trim space)
+// - Return result or error
+// YOUR CODE HERE
 
 func demonstrateInterfaceCompositionPatterns() {
 	fmt.Println("\n=== Interface Composition Patterns ===")
 
-	processor := NewEmailProcessor("@company.com")
+	// TODO: Create email processor with "@company.com" domain
+	// YOUR CODE HERE
 
-	emails := []string{
-		"Alice@company.com",
-		"bob@other.com",
-		"invalid-email",
-		"Charlie@COMPANY.COM",
-	}
+	// TODO: Create slice of test emails (valid and invalid)
+	// YOUR CODE HERE
 
-	fmt.Println("Processing emails:")
-	for _, email := range emails {
-		// Use as composed interface
-		var pv ProcessorValidator = processor
-
-		// Validate first
-		if err := pv.Validate(email); err != nil {
-			fmt.Printf("❌ %s: %v\n", email, err)
-			continue
-		}
-
-		// Then process
-		result, err := pv.Process(email)
-		if err != nil {
-			fmt.Printf("❌ %s: %v\n", email, err)
-		} else {
-			fmt.Printf("✅ %s → %s\n", email, result)
-		}
-	}
+	// TODO: Process each email:
+	// - Use as ProcessorValidator interface
+	// - Validate first
+	// - If valid, process and show result
+	// - Handle errors appropriately
+	// YOUR CODE HERE
 }
 
-// ===== MAIN DEMO FUNCTION =====
-
-func runCommonInterfacesDemo() {
-	fmt.Println("📚 Go Common Standard Library Interfaces Tutorial")
+func main() {
+	fmt.Println("📚 Go Common Standard Library Interfaces Practice")
 	fmt.Println("=================================================")
 
 	demonstrateStringer()
 	demonstrateReader()
 	demonstrateWriter()
 	demonstrateReadWriter()
-	demonstrateSortInterface()
-	demonstrateErrorInterface()
-	demonstrateInterfaceCombination()
-	demonstrateInterfaceCompositionPatterns()
+	// TODO: Uncomment these as you implement them
+	// demonstrateSortInterface()
+	// demonstrateErrorInterface()
+	// demonstrateInterfaceCombination()
+	// demonstrateInterfaceCompositionPatterns()
 
-	fmt.Println("\n✅ Common interfaces concepts covered!")
-	fmt.Println("\n🎯 Key Points:")
-	fmt.Println("- fmt.Stringer customizes string representation")
-	fmt.Println("- io.Reader/Writer enable flexible data handling")
-	fmt.Println("- sort.Interface allows custom sorting logic")
-	fmt.Println("- error interface enables rich error information")
-	fmt.Println("- Interface composition creates powerful abstractions")
-	fmt.Println("- Standard interfaces integrate seamlessly with Go's ecosystem")
-	fmt.Println("- Implementing standard interfaces makes your types 'Go-idiomatic'")
-	fmt.Println("- Small, focused interfaces are easier to implement and test")
+	fmt.Println("\n✅ Common interfaces practice completed!")
+	fmt.Println("\n🎯 Learning Goals:")
+	fmt.Println("- Implement fmt.Stringer for custom string representation")
+	fmt.Println("- Create io.Reader/Writer for flexible data handling")
+	fmt.Println("- Use sort.Interface for custom sorting logic")
+	fmt.Println("- Implement error interface for rich error information")
+	fmt.Println("- Apply interface composition for powerful abstractions")
+	fmt.Println("- Make types integrate with Go's standard library")
 }
