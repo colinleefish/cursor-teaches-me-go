@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"strings"
+	"time"
 )
 
 // ===== fmt.Stringer INTERFACE =====
@@ -12,38 +16,80 @@ import (
 
 // TODO: Define a PersonStringer struct with Name (string), Age (int), City (string) fields
 // YOUR CODE HERE
+type PersonStringer struct {
+	Name string
+	Age  int
+	City string
+}
 
 // TODO: Implement String() method for PersonStringer
 // Should return "[Name] ([Age] years old) from [City]"
 // YOUR CODE HERE
+func (p PersonStringer) String() string {
+	return fmt.Sprintf("%s (%d years old) from %s", p.Name, p.Age, p.City)
+}
 
 // TODO: Define a BankAccount struct with AccountNumber (string), Balance (float64), Owner (string)
 // YOUR CODE HERE
+type BankAccount struct {
+	AccountNumber string
+	Balance       float64
+	Owner         string
+}
 
 // TODO: Implement String() method for BankAccount
 // Mask account number for security (show only last 4 digits)
 // Should return "Account ****[last4] - Balance: $[balance] (Owner: [owner])"
 // Hint: Use strings.Repeat("*", count) to create asterisks
 // YOUR CODE HERE
-
+func (b BankAccount) String() string {
+	return fmt.Sprintf(
+		"Account %s - Balance: $%.2f (Owner: %s)",
+		b.AccountNumber[len(b.AccountNumber)-4:],
+		b.Balance,
+		b.Owner,
+	)
+}
 func demonstrateStringer() {
 	fmt.Println("=== fmt.Stringer Interface ===")
 
 	// TODO: Create a PersonStringer instance with sample data
 	// YOUR CODE HERE
 
+	timCook := PersonStringer{
+		Name: "Tim Cook",
+		Age:  62,
+		City: "Cupertino",
+	}
+
 	// TODO: Create a BankAccount instance with sample data
 	// YOUR CODE HERE
+	timCookAccount := BankAccount{
+		AccountNumber: "1234567890",
+		Balance:       1000000,
+		Owner:         "Tim Cook",
+	}
 
 	// TODO: Print both using %s (this will call String() method automatically)
 	// YOUR CODE HERE
 
+	fmt.Printf("Person: %s\n", timCook)
+	fmt.Printf("Bank Account: %s\n", timCookAccount)
+
 	// TODO: Print both using %v (this also calls String() method)
 	// YOUR CODE HERE
+	fmt.Printf("Person: %v\n", timCook)
+	fmt.Printf("Bank Account: %v\n", timCookAccount)
 
 	// TODO: Create a slice of fmt.Stringer containing both person and account
 	// Loop through and print each item
 	// YOUR CODE HERE
+
+	peopleAndAccounts := []fmt.Stringer{timCook, timCookAccount}
+
+	for _, v := range peopleAndAccounts {
+		fmt.Printf("%s\n", v)
+	}
 }
 
 // ===== io.Reader INTERFACE =====
@@ -55,50 +101,105 @@ func demonstrateStringer() {
 
 // TODO: Define a StringReader struct with data (string) and position (int) fields
 // YOUR CODE HERE
+type StringReader struct {
+	data     string
+	position int
+}
 
 // TODO: Implement NewStringReader constructor function
 // Should return *StringReader with given data and position 0
 // YOUR CODE HERE
+func NewStringReader(data string) *StringReader {
+	return &StringReader{
+		data:     data,
+		position: 0,
+	}
+}
 
 // TODO: Implement Read method for StringReader (use pointer receiver)
 // - Return 0, io.EOF if position >= len(data)
 // - Use copy(p, sr.data[sr.position:]) to copy data
 // - Update position and return bytes copied
 // YOUR CODE HERE
+func (sr *StringReader) Read(p []byte) (n int, err error) {
+	if sr.position >= len(sr.data) {
+		return 0, io.EOF
+	}
+	n = copy(p, sr.data[sr.position:])
+	sr.position += n
+	return n, nil
+}
 
 // TODO: Define UpperCaseReader struct that wraps another io.Reader
 // Should have reader field of type io.Reader
 // YOUR CODE HERE
+type UpperCaseReader struct {
+	reader io.Reader
+}
 
 // TODO: Implement NewUpperCaseReader constructor
 // YOUR CODE HERE
+func NewUpperCaseReader(reader io.Reader) *UpperCaseReader {
+	return &UpperCaseReader{
+		reader: reader,
+	}
+}
 
 // TODO: Implement Read method for UpperCaseReader
 // - Call wrapped reader's Read method first
 // - Convert lowercase letters to uppercase in the byte slice
 // - Check if p[i] >= 'a' && p[i] <= 'z', then p[i] = p[i] - 'a' + 'A'
 // YOUR CODE HERE
+func (ur *UpperCaseReader) Read(p []byte) (n int, err error) {
+	n, err = ur.reader.Read(p)
+	for i := 0; i < n; i++ {
+		if p[i] >= 'a' && p[i] <= 'z' {
+			p[i] = p[i] - 'a' + 'A'
+		}
+	}
+	return n, err
+}
 
 func demonstrateReader() {
 	fmt.Println("\n=== io.Reader Interface ===")
 
 	// TODO: Create a StringReader with some sample text
 	// YOUR CODE HERE
+	sr := NewStringReader("Shit, world!")
 
 	// TODO: Wrap it with UpperCaseReader
 	// YOUR CODE HERE
+	ucr := NewUpperCaseReader(sr)
 
 	// TODO: Use io.ReadAll to read all data and handle error
 	// Print original text and uppercase result
 	// YOUR CODE HERE
+	ucrAll, err := io.ReadAll(ucr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(ucrAll))
 
 	// TODO: Demonstrate with standard library strings.NewReader
 	// Use io.ReadAll to read the data
 	// YOUR CODE HERE
+	sns := strings.NewReader("Shit, another world!")
+	snsAll, err := io.ReadAll(sns)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(snsAll))
 
 	// TODO: Chain readers - wrap strings.NewReader with UpperCaseReader
 	// Read and print the result
 	// YOUR CODE HERE
+	snsUpper := strings.NewReader("Shit, three body world!")
+	upperThreeBodyWorld := NewUpperCaseReader(snsUpper)
+	upperThreeBodyWorldAll, err := io.ReadAll(upperThreeBodyWorld)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(upperThreeBodyWorldAll))
 }
 
 // ===== io.Writer INTERFACE =====
@@ -109,55 +210,98 @@ func demonstrateReader() {
 
 // TODO: Define LogWriter struct with prefix (string) field
 // YOUR CODE HERE
+type LogWriter struct {
+	prefix string
+}
 
 // TODO: Implement NewLogWriter constructor
 // YOUR CODE HERE
+func NewLogWriter(prefix string) *LogWriter {
+	return &LogWriter{
+		prefix: prefix,
+	}
+}
 
 // TODO: Implement Write method for LogWriter
 // - Get timestamp with time.Now().Format("15:04:05")
 // - Format message as "[timestamp] prefix: content"
 // - Print the message and return len(p), nil
 // YOUR CODE HERE
+func (lw *LogWriter) Write(p []byte) (n int, err error) {
+	timestamp := time.Now().Format("15:04:05")
+	message := fmt.Sprintf("[%s] %s: %s", timestamp, lw.prefix, string(p))
+	fmt.Println(message)
+	return len(p), nil
+}
 
 // TODO: Define MemoryWriter struct with buffer ([]byte) field
 // YOUR CODE HERE
+type MemoryWriter struct {
+	buffer []byte
+}
 
 // TODO: Implement NewMemoryWriter constructor
 // Initialize with empty byte slice using make([]byte, 0)
 // YOUR CODE HERE
+func NewMemoryWriter() *MemoryWriter {
+	return &MemoryWriter{
+		buffer: make([]byte, 0),
+	}
+}
 
 // TODO: Implement Write method for MemoryWriter
 // Append p to buffer using append(mw.buffer, p...)
 // Return len(p), nil
 // YOUR CODE HERE
+func (mw *MemoryWriter) Write(p []byte) (n int, err error) {
+	mw.buffer = append(mw.buffer, p...)
+	return len(p), nil
+}
 
 // TODO: Implement String() method for MemoryWriter
 // Convert buffer to string and return
 // YOUR CODE HERE
+func (mw *MemoryWriter) String() string {
+	return string(mw.buffer)
+}
 
 // TODO: Implement Reset() method for MemoryWriter
 // Reset buffer to empty: mw.buffer = mw.buffer[:0]
 // YOUR CODE HERE
+func (mw *MemoryWriter) Reset() {
+	mw.buffer = mw.buffer[:0]
+}
 
 func demonstrateWriter() {
 	fmt.Println("\n=== io.Writer Interface ===")
 
 	// TODO: Create a LogWriter with prefix "APP"
 	// YOUR CODE HERE
-
+	lw := NewLogWriter("APP")
 	// TODO: Write some log messages using Write method
 	// Convert strings to []byte for writing
 	// YOUR CODE HERE
 
+	lw.Write([]byte("Shit, world!"))
+	lw.Write([]byte("Shit, three body fleet coming!"))
+	lw.Write([]byte("Shit, the solar system is flattening!"))
 	// TODO: Create a MemoryWriter and write some data to it
 	// YOUR CODE HERE
-
+	mw := NewMemoryWriter()
+	mw.Write([]byte("Eason, you have a new message!"))
+	mw.Write([]byte("The world is ending and you are the last person on earth!"))
+	mw.Write([]byte("This message is self destructing in 10 seconds!"))
 	// TODO: Print the memory buffer contents using String() method
 	// YOUR CODE HERE
-
+	fmt.Println(mw)
 	// TODO: Demonstrate fmt.Fprintf with both writers
 	// fmt.Fprintf accepts io.Writer as first argument
 	// YOUR CODE HERE
+	mw.Reset()
+
+	fmt.Fprintf(mw, "%s %s", time.Now().Format("15:04:05"), "Shit, world!")
+
+	fmt.Println(mw)
 }
 
 // ===== io.ReadWriter INTERFACE =====
@@ -165,21 +309,43 @@ func demonstrateWriter() {
 // TODO: Define InMemoryFile struct with content ([]byte) and position (int) fields
 // This will implement both io.Reader and io.Writer (so it's an io.ReadWriter)
 // YOUR CODE HERE
+type InMemoryFile struct {
+	content  []byte
+	position int
+}
 
 // TODO: Implement NewInMemoryFile constructor
 // Initialize with empty content slice and position 0
 // YOUR CODE HERE
+func NewInMemoryFile() *InMemoryFile {
+	return &InMemoryFile{
+		content:  make([]byte, 0),
+		position: 0,
+	}
+}
 
 // TODO: Implement Read method for InMemoryFile (similar to StringReader)
 // - Return 0, io.EOF if position >= len(content)
 // - Copy data from content[position:] to p
 // - Update position and return bytes copied
 // YOUR CODE HERE
+func (imf *InMemoryFile) Read(p []byte) (n int, err error) {
+	if imf.position >= len(imf.content) {
+		return 0, io.EOF
+	}
+	n = copy(p, imf.content[imf.position:])
+	imf.position += n
+	return n, nil
+}
 
 // TODO: Implement Write method for InMemoryFile
 // - Append p to content using append(imf.content, p...)
 // - Return len(p), nil
 // YOUR CODE HERE
+func (imf *InMemoryFile) Write(p []byte) (n int, err error) {
+	imf.content = append(imf.content, p...)
+	return len(p), nil
+}
 
 // TODO: Implement Seek method for InMemoryFile
 // Parameters: offset (int64), whence (int)
@@ -187,29 +353,66 @@ func demonstrateWriter() {
 // Clamp position between 0 and len(content)
 // Return final position as int64
 // YOUR CODE HERE
+func (imf *InMemoryFile) Seek(offset int64, whence int) int64 {
+	switch whence {
+	case io.SeekStart:
+		imf.position = int(offset)
+	case io.SeekCurrent:
+		imf.position += int(offset)
+	case io.SeekEnd:
+		imf.position = len(imf.content) + int(offset)
+	}
+	if imf.position < 0 {
+		imf.position = 0
+	}
+	if imf.position > len(imf.content) {
+		imf.position = len(imf.content)
+	}
+	return int64(imf.position)
+}
 
 func demonstrateReadWriter() {
 	fmt.Println("\n=== io.ReadWriter Interface ===")
 
 	// TODO: Create a new InMemoryFile
 	// YOUR CODE HERE
+	imf := NewInMemoryFile()
 
 	// TODO: Write several lines of data to the file
 	// YOUR CODE HERE
+	imf.Write([]byte("Shit, world!"))
+	imf.Write([]byte("Shit, three body fleet coming!"))
+	imf.Write([]byte("Shit, the solar system is flattening!"))
 
 	// TODO: Reset position to beginning using Seek(0, io.SeekStart)
 	// YOUR CODE HERE
-
+	imf.Seek(0, io.SeekStart)
 	// TODO: Read all data using io.ReadAll and print it
 	// Handle the error properly
 	// YOUR CODE HERE
+	imfAll, err := io.ReadAll(imf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(imfAll))
+
+	fmt.Println("Reaching the end of Reader so no more data")
+	imfAll, err = io.ReadAll(imf)
+	fmt.Println(string(imfAll))
 
 	// TODO: Append more data to the file
 	// YOUR CODE HERE
+	fmt.Fprintf(imf, "New civilization is born")
 
 	// TODO: Reset to beginning and read all data again
 	// Show that new data was appended
 	// YOUR CODE HERE
+	imf.Seek(0, io.SeekStart)
+	imfAll, err = io.ReadAll(imf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(imfAll))
 }
 
 // ===== sort.Interface =====
