@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sort"
 	"strings"
 	"time"
 )
@@ -426,47 +427,106 @@ func demonstrateReadWriter() {
 
 // TODO: Define Student struct with Name (string), Grade (float64), Age (int) fields
 // YOUR CODE HERE
+type Student struct {
+	Name  string
+	Grade float64
+	Age   int
+}
 
 // TODO: Define ByGrade type as []Student and implement sort.Interface
 // - Len() should return length of slice
 // - Less(i, j) should sort by Grade in descending order
 // - Swap(i, j) should swap elements i and j
 // YOUR CODE HERE
+type ByGrade []Student
+
+func (bg ByGrade) Len() int {
+	return len(bg)
+}
+
+func (bg ByGrade) Less(i, j int) bool {
+	return bg[i].Grade > bg[j].Grade
+}
+
+func (bg ByGrade) Swap(i, j int) {
+	bg[i], bg[j] = bg[j], bg[i]
+}
 
 // TODO: Define ByAge type as []Student and implement sort.Interface
 // - Len() should return length of slice
 // - Less(i, j) should sort by Age in ascending order
 // - Swap(i, j) should swap elements i and j
 // YOUR CODE HERE
+type ByAge []Student
+
+func (ba ByAge) Len() int {
+	return len(ba)
+}
+
+func (ba ByAge) Less(i, j int) bool {
+	return ba[i].Age < ba[j].Age
+}
+
+func (ba ByAge) Swap(i, j int) {
+	ba[i], ba[j] = ba[j], ba[i]
+}
 
 // TODO: Define ByName type as []Student and implement sort.Interface
 // - Len() should return length of slice
 // - Less(i, j) should sort by Name alphabetically
 // - Swap(i, j) should swap elements i and j
 // YOUR CODE HERE
+type ByName []Student
+
+func (bn ByName) Len() int {
+	return len(bn)
+}
+
+func (bn ByName) Less(i, j int) bool {
+	return bn[i].Name < bn[j].Name
+}
+
+func (bn ByName) Swap(i, j int) {
+	bn[i], bn[j] = bn[j], bn[i]
+}
 
 func demonstrateSortInterface() {
 	fmt.Println("\n=== sort.Interface ===")
 
 	// TODO: Create a slice of students with sample data
 	// YOUR CODE HERE
-
+	students := []Student{
+		{Name: "John", Grade: 85.5, Age: 20},
+		{Name: "Jane", Grade: 90.0, Age: 22},
+		{Name: "Jim", Grade: 78.5, Age: 21},
+		{Name: "Jill", Grade: 88.0, Age: 20},
+	}
 	// TODO: Print original students
 	// YOUR CODE HERE
-
+	printStudents(students)
 	// TODO: Sort by grade (descending) and print
 	// YOUR CODE HERE
-
+	sort.Sort(ByGrade(students))
+	printStudents(students)
 	// TODO: Sort by age (ascending) and print
 	// YOUR CODE HERE
-
+	sort.Sort(ByAge(students))
+	printStudents(students)
 	// TODO: Sort by name (alphabetical) and print
 	// YOUR CODE HERE
+	sort.Sort(ByName(students))
+	printStudents(students)
 }
 
 // Helper function to print students
 // TODO: Implement printStudents function
 // YOUR CODE HERE
+func printStudents(students []Student) {
+	for _, s := range students {
+		fmt.Printf("Name: %s; Age: %d; Grade: %.2f\n", s.Name, s.Age, s.Grade)
+	}
+	fmt.Println()
+}
 
 // ===== error INTERFACE =====
 
@@ -477,39 +537,82 @@ func demonstrateSortInterface() {
 
 // TODO: Define ValidationErrorCustom struct with Field (string), Value (interface{}), Message (string) fields
 // YOUR CODE HERE
+type ValidationErrorCustom struct {
+	Field   string
+	Value   any
+	Message string
+}
 
 // TODO: Implement Error() method for ValidationErrorCustom
 // Should return "validation failed for field '[Field]' with value '[Value]': [Message]"
 // YOUR CODE HERE
+func (vec ValidationErrorCustom) Error() (err string) {
+	err = fmt.Sprintf("validation failed for field '%s' with value '%v': %s", vec.Field, vec.Value, vec.Message)
+	return
+}
 
 // TODO: Define NetworkErrorCustom struct with Operation (string), URL (string), Code (int), Timestamp (time.Time) fields
 // YOUR CODE HERE
+type NetworkErrorCustom struct {
+	Operation string
+	URL       string
+	Code      int
+	Timestamp time.Time
+}
 
 // TODO: Implement Error() method for NetworkErrorCustom
 // Should return "network error during [Operation] to [URL]: HTTP [Code] at [Timestamp]"
 // Format timestamp using Format("15:04:05")
 // YOUR CODE HERE
+func (nec NetworkErrorCustom) Error() (err string) {
+	err = fmt.Sprintf("network error during '%s' to '%s': HTTP %d at %s", nec.Operation, nec.URL, nec.Code, nec.Timestamp.Format("15:04:05"))
+	return
+}
 
 // TODO: Implement String() method for NetworkErrorCustom (fmt.Stringer)
 // Should return "NetworkError{Op: [Operation], URL: [URL], Code: [Code]}"
 // YOUR CODE HERE
+func (nec NetworkErrorCustom) String() (desc string) {
+	desc = fmt.Sprintf("NetworkError{Op: %s, URL: %s, Code: %d}", nec.Operation, nec.URL, nec.Code)
+	return
+}
 
 func demonstrateErrorInterface() {
 	fmt.Println("\n=== error Interface ===")
 
 	// TODO: Create sample validation and network errors
 	// YOUR CODE HERE
-
+	vec := ValidationErrorCustom{
+		Field:   "Name",
+		Value:   "John",
+		Message: "Name is required",
+	}
+	nec := NetworkErrorCustom{
+		Operation: "GET",
+		URL:       "https://example.com",
+		Code:      500,
+		Timestamp: time.Now(),
+	}
 	// TODO: Create slice of error interface containing both errors
 	// YOUR CODE HERE
-
+	errors := []error{vec, nec}
 	// TODO: Range over errors and print each one
 	// YOUR CODE HERE
-
+	for _, err := range errors {
+		fmt.Println(err)
+	}
 	// TODO: Use type assertion to handle each error type specifically
 	// For ValidationErrorCustom: Print field name
 	// For NetworkErrorCustom: Print status code and use String() method
 	// YOUR CODE HERE
+	for _, err := range errors {
+		switch err := err.(type) {
+		case ValidationErrorCustom:
+			fmt.Printf("Validation Error: %s\n", err.Field)
+		case NetworkErrorCustom:
+			fmt.Printf("Network Error: %s\n", err.String())
+		}
+	}
 }
 
 // ===== COMBINING INTERFACES =====
@@ -614,13 +717,13 @@ func main() {
 	fmt.Println("📚 Go Common Standard Library Interfaces Practice")
 	fmt.Println("=================================================")
 
-	demonstrateStringer()
-	demonstrateReader()
-	demonstrateWriter()
-	demonstrateReadWriter()
+	// demonstrateStringer()
+	// demonstrateReader()
+	// demonstrateWriter()
+	// demonstrateReadWriter()
 	// TODO: Uncomment these as you implement them
 	// demonstrateSortInterface()
-	// demonstrateErrorInterface()
+	demonstrateErrorInterface()
 	// demonstrateInterfaceCombination()
 	// demonstrateInterfaceCompositionPatterns()
 
