@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -619,91 +620,182 @@ func demonstrateErrorInterface() {
 
 // TODO: Define Logger interface with Log(message string) method
 // YOUR CODE HERE
+type Logger interface {
+	Log(message string)
+}
 
 // TODO: Define FileSystemLogger interface that combines Logger and io.Writer
 // Also add SetLogLevel(level string) method
 // YOUR CODE HERE
+type FileSystemLogger interface {
+	Logger
+	io.Writer
+	SetLogLevel(level string)
+}
 
 // TODO: Define ConsoleFileLogger struct with logLevel (string) and buffer (*bytes.Buffer) fields
 // YOUR CODE HERE
+type ConsoleFileLogger struct {
+	buffer   *bytes.Buffer
+	logLevel string
+}
 
 // TODO: Implement NewConsoleFileLogger constructor
 // Initialize with "INFO" level and new buffer
 // YOUR CODE HERE
+func NewConsoleFileLogger() *ConsoleFileLogger {
+	return &ConsoleFileLogger{
+		buffer:   &bytes.Buffer{},
+		logLevel: "INFO",
+	}
+}
 
 // TODO: Implement Log method for ConsoleFileLogger
 // - Format with timestamp, level, message
 // - Write to console and buffer
 // YOUR CODE HERE
 
+func (cf *ConsoleFileLogger) Log(message string) {
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+	level := strings.ToUpper(cf.logLevel)
+	content := fmt.Sprintf("[%s] %s: %s", timestamp, level, message)
+	cf.buffer.WriteString(content)
+	cf.buffer.WriteString("\n")
+}
+
 // TODO: Implement Write method for ConsoleFileLogger (io.Writer)
 // - Convert bytes to string, trim space
 // - Call Log method
 // - Return length and nil error
 // YOUR CODE HERE
+func (cf *ConsoleFileLogger) Write(p []byte) (n int, err error) {
+	message := strings.TrimSpace(string(p))
+	if message == "" {
+		return 0, nil
+	}
+	cf.Log(message)
+	return len(p), nil
+}
 
 // TODO: Implement SetLogLevel method
 // YOUR CODE HERE
 
+func (cf *ConsoleFileLogger) SetLogLevel(level string) {
+	cf.logLevel = strings.ToUpper(level)
+}
+
 // TODO: Implement GetBufferedLogs method to return buffer contents
 // YOUR CODE HERE
+func (cf *ConsoleFileLogger) GetBufferedLogs() string {
+	return cf.buffer.String()
+}
 
 func demonstrateInterfaceCombination() {
 	fmt.Println("\n=== Combining Interfaces ===")
 
 	// TODO: Create new logger
 	// YOUR CODE HERE
+	cf := NewConsoleFileLogger()
 
 	// TODO: Use as Logger interface
 	// YOUR CODE HERE
+	cf.Log("This is a test message")
 
 	// TODO: Use as io.Writer interface with fmt.Fprintf
 	// YOUR CODE HERE
+	fmt.Fprintf(cf, "This is a test message from fmt.Fprintf")
 
 	// TODO: Use as FileSystemLogger interface
 	// YOUR CODE HERE
+	cf.SetLogLevel("DEBUG")
 
 	// TODO: Show buffered logs
 	// YOUR CODE HERE
+	fmt.Println(cf.GetBufferedLogs())
 }
 
 // ===== INTERFACE COMPOSITION PATTERNS =====
 
 // TODO: Define Processor interface with Process(data string) (string, error) method
 // YOUR CODE HERE
+type Processor interface {
+	Process(data string) (string, error)
+}
 
 // TODO: Define Validator interface with Validate(data string) error method
 // YOUR CODE HERE
+type Validator interface {
+	Validate(data string) error
+}
 
 // TODO: Define ProcessorValidator interface combining both interfaces
 // YOUR CODE HERE
+type ProcessorValidator interface {
+	Processor
+	Validator
+}
 
 // TODO: Define EmailProcessor struct with domain (string) field
 // YOUR CODE HERE
+type EmailProcessor struct {
+	domain string
+}
 
 // TODO: Implement NewEmailProcessor constructor
 // YOUR CODE HERE
+func NewEmailProcessor(domain string) *EmailProcessor {
+	return &EmailProcessor{
+		domain: domain,
+	}
+}
 
 // TODO: Implement Validate method for EmailProcessor
 // - Check if email contains @
 // - Check if email ends with correct domain
 // - Return appropriate errors
 // YOUR CODE HERE
+func (ep *EmailProcessor) Validate(data string) error {
+	if !strings.Contains(data, "@") {
+		return fmt.Errorf("invalid email format")
+	}
+	if !strings.HasSuffix(data, ep.domain) {
+		return fmt.Errorf("invalid domain")
+	}
+	return nil
+}
 
 // TODO: Implement Process method for EmailProcessor
 // - Call Validate first
 // - If valid, normalize email (lowercase, trim space)
 // - Return result or error
 // YOUR CODE HERE
+func (ep *EmailProcessor) Process(data string) (string, error) {
+	if err := ep.Validate(data); err != nil {
+		return "", err
+	}
+	normalized := strings.ToLower(strings.TrimSpace(data))
+	return normalized, nil
+}
 
 func demonstrateInterfaceCompositionPatterns() {
 	fmt.Println("\n=== Interface Composition Patterns ===")
 
 	// TODO: Create email processor with "@company.com" domain
 	// YOUR CODE HERE
+	ep := NewEmailProcessor("@company.com")
 
 	// TODO: Create slice of test emails (valid and invalid)
 	// YOUR CODE HERE
+	emails := []string{
+		"test@company.com",
+		"ceo@company.com",
+		"ceo@company.com.com",
+		"ceo@company.com.com.com",
+		"ceo@company.com.com.com.com",
+		"ceo@company.com.com.com.com.com",
+		"ceo@company.com.com.com.com.com.com",
+		"ceo@company.com.com.com.com.com.com.com",
+	}
 
 	// TODO: Process each email:
 	// - Use as ProcessorValidator interface
@@ -711,21 +803,29 @@ func demonstrateInterfaceCompositionPatterns() {
 	// - If valid, process and show result
 	// - Handle errors appropriately
 	// YOUR CODE HERE
+	for _, email := range emails {
+		result, err := ep.Process(email)
+		if err != nil {
+			fmt.Printf("Error processing %s: %v\n", email, err)
+		} else {
+			fmt.Printf("Processed %s -> %s\n", email, result)
+		}
+	}
 }
 
 func main() {
 	fmt.Println("📚 Go Common Standard Library Interfaces Practice")
 	fmt.Println("=================================================")
 
-	// demonstrateStringer()
-	// demonstrateReader()
-	// demonstrateWriter()
-	// demonstrateReadWriter()
+	demonstrateStringer()
+	demonstrateReader()
+	demonstrateWriter()
+	demonstrateReadWriter()
 	// TODO: Uncomment these as you implement them
-	// demonstrateSortInterface()
+	demonstrateSortInterface()
 	demonstrateErrorInterface()
-	// demonstrateInterfaceCombination()
-	// demonstrateInterfaceCompositionPatterns()
+	demonstrateInterfaceCombination()
+	demonstrateInterfaceCompositionPatterns()
 
 	fmt.Println("\n✅ Common interfaces practice completed!")
 	fmt.Println("\n🎯 Learning Goals:")
