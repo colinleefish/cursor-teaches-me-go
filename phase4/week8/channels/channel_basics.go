@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -14,12 +15,21 @@ func demonstrateBasicChannels() {
 
 	// TODO: Create an unbuffered channel
 	// Use make(chan type) syntax
+	ch := make(chan int)
 
 	// TODO: Send and receive in separate goroutines
 	// Show that unbuffered channels block until both sender and receiver are ready
+	go func() {
+		ch <- 1
+	}()
+	go func() {
+		time.Sleep(1 * time.Second)
+		fmt.Println(<-ch)
+	}()
 
 	// TODO: Demonstrate the synchronization property
 	// Show how channels coordinate goroutines
+	time.Sleep(1 * time.Second)
 
 	fmt.Println("Basic channel operations completed!")
 }
@@ -31,12 +41,48 @@ func demonstrateChannelBlocking() {
 	// TODO: Show blocking send on unbuffered channel
 	// Create a channel and try to send without a receiver
 	// Use a goroutine to avoid deadlock and show the blocking
+	ch := make(chan int)
+	// go func() {
+	// 	fmt.Println("Sending 6 in 1 second")
+	// 	time.Sleep(1 * time.Second)
+	// 	fmt.Println("Sending 6")
+	// 	ch <- 6
+	// 	fmt.Println("Sent 6")
+	// }()
+
+	// time.Sleep(3 * time.Second)
 
 	// TODO: Show blocking receive on empty channel
 	// Try to receive from channel with no sender
+	// go func() {
+	// 	fmt.Println("Receiving from channel")
+	// 	fmt.Println(<-ch)
+	// 	fmt.Println("Received from channel")
+	// }()
+
+	// time.Sleep(3 * time.Second)
 
 	// TODO: Show synchronous nature of unbuffered channels
 	// Demonstrate that send doesn't complete until receive happens
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		fmt.Println("Sending 6")
+		ch <- 6
+		fmt.Println("Sent 6")
+	}()
+
+	go func() {
+		defer wg.Done()
+		fmt.Println("Receiving from channel")
+		fmt.Println(<-ch)
+		fmt.Println("Received from channel")
+	}()
+
+	wg.Wait()
 
 	fmt.Println("Channel blocking demonstration completed!")
 }
@@ -48,21 +94,29 @@ func demonstrateChannelDirections() {
 	// TODO: Create functions with directional channel parameters
 
 	// Send-only channel parameter
+
+	ch := make(chan string)
 	sender := func(ch chan<- string, message string) {
-		// TODO: Send message to channel
-		// Show that you can only send, not receive
+		ch <- message
 	}
 
 	// Receive-only channel parameter
+	// receiver := func(ch <-chan string) string {
+	//     // TODO: Receive message from channel
+	//     // Show that you can only receive, not send
+	//     return ""
+	// }
 	receiver := func(ch <-chan string) string {
-		// TODO: Receive message from channel
-		// Show that you can only receive, not send
-		return ""
+		return <-ch
 	}
 
 	// TODO: Create a bidirectional channel
 	// Pass it to sender and receiver functions
 	// Show how Go automatically converts to directional channels
+
+	go sender(ch, "Hello")
+
+	fmt.Println(receiver(ch))
 
 	fmt.Println("Channel directions demonstration completed!")
 }
@@ -73,16 +127,68 @@ func demonstrateChannelClosing() {
 
 	// TODO: Show how to close a channel
 	// Demonstrate that closing is done by sender, not receiver
+	wg := sync.WaitGroup{}
+
+	ch := make(chan int)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		// ch <- 1
+		close(ch)
+	}()
 
 	// TODO: Show receiving from closed channel
 	// Demonstrate that receives from closed channel return zero value
 	// Show the two-value receive to check if channel is closed
 
+	time.Sleep(1 * time.Second)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println(<-ch)
+	}()
+
 	// TODO: Show what happens when sending to closed channel
 	// This should panic - demonstrate with recover
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Recovered from panic: %v\n", r)
+			}
+		}()
+		ch <- 1
+	}()
+
 	// TODO: Show multiple closes cause panic
 	// Use recover to catch the panic
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Recovered from panic: %v\n", r)
+			}
+		}()
+		close(ch)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Recovered from panic: %v\n", r)
+			}
+		}()
+		close(ch)
+		close(ch)
+	}()
+
+	wg.Wait()
 
 	fmt.Println("Channel closing demonstration completed!")
 }
@@ -92,16 +198,16 @@ func demonstrateChannelRange() {
 	fmt.Println("\n=== Range Over Channels ===")
 
 	// TODO: Create a producer that sends multiple values
-	producer := func(ch chan<- int) {
-		// TODO: Send numbers 1-5 to channel
-		// TODO: Close the channel when done
-	}
+	// producer := func(ch chan<- int) {
+	//     // TODO: Send numbers 1-5 to channel
+	//     // TODO: Close the channel when done
+	// }
 
 	// TODO: Create a consumer that uses range
-	consumer := func(ch <-chan int) {
-		// TODO: Use range to receive all values
-		// Show that range automatically exits when channel is closed
-	}
+	// consumer := func(ch <-chan int) {
+	//     // TODO: Use range to receive all values
+	//     // Show that range automatically exits when channel is closed
+	// }
 
 	// TODO: Connect producer and consumer
 	// Show the clean pattern for producer-consumer with range
@@ -114,7 +220,7 @@ func demonstrateNilChannels() {
 	fmt.Println("\n=== Nil Channels ===")
 
 	// TODO: Show nil channel behavior
-	var nilCh chan int
+	// var nilCh chan int
 
 	// TODO: Show that sending to nil channel blocks forever
 	// Use select with default to avoid blocking
@@ -138,13 +244,13 @@ func demonstrateChannelsAsValues() {
 	// TODO: Show channels can be stored in slices/maps
 
 	// TODO: Create a channel factory function
-	createIntChannel := func(bufferSize int) chan int {
-		// TODO: Return a new channel with given buffer size
-		return nil
-	}
+	// createIntChannel := func(bufferSize int) chan int {
+	//     // TODO: Return a new channel with given buffer size
+	//     return nil
+	// }
 
 	// TODO: Create a channel registry
-	channelRegistry := make(map[string]chan string)
+	// channelRegistry := make(map[string]chan string)
 
 	// TODO: Store and retrieve channels from registry
 	// Show how channels can be managed dynamically
@@ -191,11 +297,11 @@ func demonstrateChannelVsOther() {
 	// for a simple counter problem
 
 	// TODO: Channel-based counter
-	channelCounter := func(n int) int {
-		// TODO: Use channel to coordinate counter increments
-		// Show how channels can replace mutexes
-		return 0
-	}
+	// channelCounter := func(n int) int {
+	//     // TODO: Use channel to coordinate counter increments
+	//     // Show how channels can replace mutexes
+	//     return 0
+	// }
 
 	// TODO: Show timing comparison
 	// Measure performance of channel vs mutex approach
@@ -208,28 +314,28 @@ func demonstrateCommonMistakes() {
 	fmt.Println("\n=== Common Channel Mistakes ===")
 
 	// TODO: Mistake 1: Forgetting to close channel in range
-	mistake1 := func() {
-		// TODO: Show what happens when you forget to close
-		// Use timeout to avoid infinite blocking
-	}
+	// mistake1 := func() {
+	//     // TODO: Show what happens when you forget to close
+	//     // Use timeout to avoid infinite blocking
+	// }
 
 	// TODO: Mistake 2: Sending on closed channel
-	mistake2 := func() {
-		// TODO: Show panic when sending to closed channel
-		// Use recover to handle the panic
-	}
+	// mistake2 := func() {
+	//     // TODO: Show panic when sending to closed channel
+	//     // Use recover to handle the panic
+	// }
 
 	// TODO: Mistake 3: Closing channel multiple times
-	mistake3 := func() {
-		// TODO: Show panic when closing already closed channel
-		// Use recover to handle the panic
-	}
+	// mistake3 := func() {
+	//     // TODO: Show panic when closing already closed channel
+	//     // Use recover to handle the panic
+	// }
 
 	// TODO: Mistake 4: Wrong direction expectations
-	mistake4 := func() {
-		// TODO: Show compilation errors with wrong channel directions
-		// Comment out the incorrect code with explanations
-	}
+	// mistake4 := func() {
+	//     // TODO: Show compilation errors with wrong channel directions
+	//     // Comment out the incorrect code with explanations
+	// }
 
 	// TODO: Execute each mistake demonstration safely
 	fmt.Println("Demonstrating mistakes (safely)...")
@@ -292,10 +398,10 @@ func main() {
 	// TODO: Implement each demonstration function
 	// Start with basic operations and progress to advanced concepts
 
-	demonstrateBasicChannels()
+	// demonstrateBasicChannels()
 	// demonstrateChannelBlocking()
 	// demonstrateChannelDirections()
-	// demonstrateChannelClosing()
+	demonstrateChannelClosing()
 	// demonstrateChannelRange()
 	// demonstrateNilChannels()
 	// demonstrateChannelsAsValues()

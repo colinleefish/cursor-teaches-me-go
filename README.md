@@ -67,14 +67,14 @@ By the end of this roadmap, you'll be able to:
 
 ### Phase 4: Concurrency (Weeks 7-8)
 
-#### Week 7: Goroutines
-- [ ] Understanding goroutines vs threads
-- [ ] Creating and managing goroutines
-- [ ] The `go` keyword
-- [ ] WaitGroups for synchronization
+#### Week 7: Goroutines ✅
+- [x] Understanding goroutines vs threads
+- [x] Creating and managing goroutines
+- [x] The `go` keyword
+- [x] WaitGroups for synchronization
 
 #### Week 8: Channels
-- [ ] Channel basics and syntax
+- [ ] Channel basics and syntax (in progress)
 - [ ] Buffered vs unbuffered channels
 - [ ] Channel directions (send-only, receive-only)
 - [ ] Select statements
@@ -155,12 +155,14 @@ By the end of this roadmap, you'll be able to:
 
 ## 📝 Progress Tracking
 
-**Current Phase**: ✅ **Phase 3: Structs & Interfaces COMPLETED** → 🚀 **Phase 4: Concurrency** (Week 7 Goroutines → NEXT)
+**Current Phase**: 🚀 **Phase 4: Concurrency** — Week 7 (Goroutines) ✅ complete; Week 8 (Channels) ⏳ in progress
 
-## 📝 Notes
-
-### 🚧 Work in Progress
-- **phase3/week6/interfaces/interface_practice.go** - Interface practice exercises not yet completed (chaining ROT13Reader and CountingWriter)
+**In progress / Skipped for now**
+- **Week 7 Goroutines**: `phase4/week7/goroutines/goroutine_patterns.go`, `goroutine_practice.go`, `race_conditions.go`, `demo/*`
+- **Week 8 Channels**:
+  - Remaining sections in `phase4/week8/channels/channel_basics.go`: blocking behavior, directions, closing, range, nil channels, channels as values, communication patterns, comparison vs other sync, common mistakes, performance
+  - Other files not started: `buffered_channels.go`, `select_statements.go`, `channel_patterns.go`, `channel_practice.go`
+- **Earlier phase pending**: `phase3/week6/interfaces/interface_practice.go` — interface practice (chaining ROT13Reader and CountingWriter)
 
 ## 🚀 Getting Started
 

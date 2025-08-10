@@ -312,10 +312,10 @@ func performanceComparison() {
 }
 
 // Helper function to simulate work
-func simulateWork(id int, duration time.Duration) string {
-	time.Sleep(duration)
-	return fmt.Sprintf("Work %d completed", id)
-}
+// func simulateWork(id int, duration time.Duration) string {
+// 	time.Sleep(duration)
+// 	return fmt.Sprintf("Work %d completed", id)
+// }
 
 // Helper function to simulate flaky operation
 func flakyOperation() error {
