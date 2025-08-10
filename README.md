@@ -157,6 +157,11 @@ By the end of this roadmap, you'll be able to:
 
 **Current Phase**: ✅ **Phase 3: Structs & Interfaces COMPLETED** → 🚀 **Phase 4: Concurrency** (Week 7 Goroutines → NEXT)
 
+## 📝 Notes
+
+### 🚧 Work in Progress
+- **phase3/week6/interfaces/interface_practice.go** - Interface practice exercises not yet completed (chaining ROT13Reader and CountingWriter)
+
 ## 🚀 Getting Started
 
 1. **Install Go**: Visit [golang.org](https://golang.org/dl/) and install the latest version
