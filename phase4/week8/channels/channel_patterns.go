@@ -349,11 +349,11 @@ type Job struct {
 	Payload  interface{}
 }
 
-type Message struct {
-	Topic   string
-	Content string
-	Time    time.Time
-}
+// type Message struct {
+// 	Topic   string
+// 	Content string
+// 	Time    time.Time
+// }
 
 type Request struct {
 	ID      string
