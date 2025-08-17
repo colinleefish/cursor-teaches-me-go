@@ -23,6 +23,27 @@ func demonstrateBasicWaitGroup() {
 	// TODO: Inside each goroutine, use defer wg.Done()
 	// TODO: Call wg.Wait() to block until all complete
 	// TODO: Show the difference with and without WaitGroup
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("Hello from goroutine")
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("Hello from goroutine 2")
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("Hello from goroutine 3")
+	}()
+
+	wg.Wait()
 }
 
 // TUTOR: The WaitGroup lifecycle follows a strict pattern: Add before goroutine, Done inside goroutine, Wait in coordinator.
@@ -38,6 +59,13 @@ func demonstrateWaitGroupLifecycle() {
 	// TODO: Demonstrate what happens if you Add() after launching goroutine
 	// TODO: Show proper cleanup with defer wg.Done()
 	// TODO: Illustrate how Wait() blocks until counter reaches zero
+	wg := sync.WaitGroup{}
+	go func() {
+		defer wg.Done()
+		wg.Add(1)
+		fmt.Println("Hello from goroutine")
+	}()
+	wg.Wait()
 }
 
 // TUTOR: WaitGroups can coordinate any number of goroutines dynamically.
@@ -68,6 +96,27 @@ func demonstrateWorkCoordination() {
 	// TODO: Use time.Sleep() to simulate varying work durations
 	// TODO: Show how WaitGroup waits for the slowest goroutine
 	// TODO: Demonstrate that all work completes before proceeding
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		simulateWork(1, 10*time.Second)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		simulateWork(2, 5*time.Second)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		simulateWork(3, 1*time.Second)
+	}()
+
+	wg.Wait()
 }
 
 // TUTOR: Multiple WaitGroups can coordinate different groups of goroutines independently.
@@ -83,6 +132,24 @@ func demonstrateMultipleWaitGroups() {
 	// TODO: Launch different groups of goroutines with their respective WaitGroups
 	// TODO: Show how you can wait for groups independently
 	// TODO: Demonstrate sequential coordination: group1, then group2
+
+	wg1 := sync.WaitGroup{}
+	wg2 := sync.WaitGroup{}
+
+	wg1.Add(1)
+	go func() {
+		defer wg1.Done()
+		simulateWork(1, 10*time.Second)
+	}()
+
+	wg2.Add(1)
+	go func() {
+		defer wg2.Done()
+		simulateWork(2, 5*time.Second)
+	}()
+
+	wg1.Wait()
+	wg2.Wait()
 }
 
 // TUTOR: WaitGroups must be passed by pointer to goroutines to work correctly.
@@ -113,6 +180,15 @@ func demonstrateWaitGroupBalance() {
 	// TODO: Demonstrate what happens with mismatched Add/Done (in comments)
 	// TODO: Show how to safely check WaitGroup state conceptually
 	// TODO: Illustrate defensive programming with WaitGroups
+
+	wg := sync.WaitGroup{}
+	// Scenario 1: More Add than Done
+	wg.Add(5)                 // counter = 5
+	go func() { wg.Done() }() // counter = 4
+	go func() { wg.Done() }() // counter = 3
+	go func() { wg.Done() }() // counter = 2
+	// Missing 2 Done() calls
+	wg.Wait() // HANGS FOREVER (counter never reaches 0)
 }
 
 // Helper function to simulate work
@@ -136,13 +212,13 @@ func main() {
 	// TODO: Implement each demonstration function
 	// Build understanding of coordination before communication
 
-	demonstrateBasicWaitGroup()
+	// demonstrateBasicWaitGroup()
 	// demonstrateWaitGroupLifecycle()
 	// demonstrateDynamicCoordination()
 	// demonstrateWorkCoordination()
 	// demonstrateMultipleWaitGroups()
 	// demonstrateWaitGroupParameters()
-	// demonstrateWaitGroupBalance()
+	demonstrateWaitGroupBalance()
 
 	fmt.Println("\n🎉 Congratulations! You can coordinate goroutines!")
 	fmt.Println("Next: Learn communication with channels.go")

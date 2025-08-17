@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 	// "time" // TODO: Uncomment when implementing timing demos
 )
 
@@ -21,6 +22,15 @@ func demonstrateBasicChannels() {
 	// TODO: Send a value with ch <- value
 	// TODO: Receive a value with value := <-ch
 	// TODO: Show that this blocks until both sender and receiver are ready
+
+	ch := make(chan string)
+
+	go func() {
+		ch <- "Hello"
+	}()
+
+	msg := <-ch
+	fmt.Println(msg)
 }
 
 // TUTOR: Channels are blocking by default - this is crucial for synchronization.
@@ -51,6 +61,35 @@ func demonstrateDataPassing() {
 	// TODO: Show how each value is received by exactly one receiver
 	// TODO: Demonstrate that there are no race conditions
 	// TODO: Compare with shared variable approaches (conceptually)
+
+	fmt.Println("=== Unsafe Data Passing ===")
+
+	counter := 0
+
+	for i := 0; i < 1000; i++ {
+		go func() {
+			counter++
+		}()
+	}
+	time.Sleep(1 * time.Second)
+	fmt.Println("Counter:", counter)
+
+	fmt.Println("=== Safe Data Passing ===")
+
+	ch := make(chan int)
+
+	// Send values from multiple goroutines
+	for i := 0; i < 10; i++ {
+		go func(val int) {
+			ch <- val // Safe! Each value sent exactly once
+		}(i)
+	}
+
+	// Receive all values
+	for i := 0; i < 10; i++ {
+		value := <-ch      // Each value received by exactly one receiver
+		fmt.Println(value) // All 10 values received, no race
+	}
 }
 
 // TUTOR: Channel closing signals "no more values" to receivers.
@@ -66,6 +105,26 @@ func demonstrateChannelClosing() {
 	// TODO: Close the channel with close(ch)
 	// TODO: Show receiving with value, ok := <-ch syntax
 	// TODO: Demonstrate that closed channels return zero value and false
+
+	ch := make(chan int, 3)
+
+	go func() {
+		defer close(ch)
+		for i := 0; i < 3; i++ {
+			ch <- i
+		}
+		fmt.Println("Sender done")
+	}()
+
+	time.Sleep(1 * time.Second)
+
+	for {
+		value, ok := <-ch
+		if !ok {
+			break
+		}
+		fmt.Println(value)
+	}
 }
 
 // TUTOR: Range loops over channels receive all values until the channel is closed.
@@ -81,6 +140,19 @@ func demonstrateChannelRange() {
 	// TODO: Close the channel when done sending
 	// TODO: Use for value := range ch to receive all values
 	// TODO: Show that range exits automatically when channel closes
+
+	ch := make(chan int)
+
+	go func() {
+		defer close(ch)
+		for i := 0; i < 10; i++ {
+			ch <- i
+		}
+	}()
+
+	for value := range ch {
+		fmt.Println(value)
+	}
 }
 
 // TUTOR: Channels coordinate goroutines naturally through their blocking behavior.
@@ -96,6 +168,18 @@ func demonstrateChannelCoordination() {
 	// TODO: Show how channel operations naturally synchronize goroutines
 	// TODO: Demonstrate coordination without WaitGroups
 	// TODO: Compare channel coordination vs WaitGroup coordination
+
+	start := make(chan bool)
+
+	for i := 0; i < 10; i++ {
+		go func(id int) {
+			<-start
+			fmt.Println("Worker", id, "started")
+		}(i)
+	}
+
+	time.Sleep(1 * time.Second)
+	close(start)
 }
 
 // TUTOR: Channels have types - you can only send/receive values of the channel's type.
@@ -145,12 +229,12 @@ func main() {
 	// TODO: Implement each demonstration function
 	// Focus on understanding communication before coordination patterns
 
-	demonstrateBasicChannels()
+	// demonstrateBasicChannels()
 	// demonstrateChannelBlocking()
 	// demonstrateDataPassing()
 	// demonstrateChannelClosing()
 	// demonstrateChannelRange()
-	// demonstrateChannelCoordination()
+	demonstrateChannelCoordination()
 	// demonstrateChannelTypes()
 	// demonstrateNilChannels()
 

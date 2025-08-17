@@ -84,6 +84,45 @@ This curriculum follows a strict dependency order - each level builds on the pre
 | **6.3 Performance Optimization** | Tuning concurrent systems                            | All patterns           | Profiling, bottleneck analysis             |
 | **6.4 Testing & Debugging**      | Ensuring correctness                                 | All patterns           | Race detection, stress testing             |
 
+## 📊 Progress Tracking
+
+### Level 1: Cornerstones (Foundations)
+- [x] **1.1 Goroutines** ✅ 
+- [x] **1.2 WaitGroups** ✅
+- [x] **1.3 Channels** ✅
+- [ ] **1.4 Select**
+
+### Level 2: Core Concepts (Safety & Types)
+- [ ] **2.1 Race Conditions**
+- [ ] **2.2 Channel Types**
+- [ ] **2.3 Buffered Channels**
+- [ ] **2.4 Channel Closing**
+- [ ] **2.5 Error Handling**
+
+### Level 3: Basic Patterns (Simple Compositions)
+- [ ] **3.1 Producer-Consumer**
+- [ ] **3.2 Worker Pools**
+- [ ] **3.3 Pipeline**
+- [ ] **3.4 Bounded Parallelism**
+
+### Level 4: Advanced Patterns (Complex Compositions)
+- [ ] **4.1 Fan-In**
+- [ ] **4.2 Fan-Out**
+- [ ] **4.3 Timeout & Cancellation**
+- [ ] **4.4 Request-Response**
+
+### Level 5: Resilience Patterns (Production-Ready)
+- [ ] **5.1 Graceful Shutdown**
+- [ ] **5.2 Rate Limiting**
+- [ ] **5.3 Circuit Breaker**
+- [ ] **5.4 Retry with Backoff**
+
+### Level 6: System Design (Advanced Composition)
+- [ ] **6.1 Pub-Sub Systems**
+- [ ] **6.2 Complex Coordination**
+- [ ] **6.3 Performance Optimization**
+- [ ] **6.4 Testing & Debugging**
+
 ## 🎯 Learning Path
 
 ### Phase 1: Foundation Mastery (Essential)
