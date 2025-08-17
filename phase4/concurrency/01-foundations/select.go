@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -21,6 +22,30 @@ func demonstrateBasicSelect() {
 	// TODO: Send values to them from separate goroutines
 	// TODO: Use select to receive from whichever is ready first
 	// TODO: Show that select picks the first ready operation
+
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+
+	// Different timing to show "first ready wins"
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		ch1 <- "Fast channel"
+	}()
+
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		ch2 <- "Slow channel"
+	}()
+
+	// Select picks whichever is ready first
+	select {
+	case msg1 := <-ch1:
+		fmt.Println("Got:", msg1) // Usually this one
+	case msg2 := <-ch2:
+		fmt.Println("Got:", msg2) // Rarely this one
+	}
+
+	fmt.Println("Select completed - didn't wait for both!")
 }
 
 // TUTOR: When multiple channels are ready simultaneously, select chooses randomly.
@@ -36,6 +61,36 @@ func demonstrateSelectRandomness() {
 	// TODO: Run select in a loop to show random selection
 	// TODO: Count how many times each channel is chosen
 	// TODO: Show that selection is non-deterministic but fair
+
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+
+	ONE_COUNTER := 0
+	TWO_COUNTER := 0
+
+	for i := 0; i < 1000; i++ {
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			ch1 <- "CHANNEL 1"
+		}()
+
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			ch2 <- "CHANNEL 2"
+		}()
+
+		select {
+		case msg1 := <-ch1:
+			fmt.Println("Got:", msg1)
+			ONE_COUNTER++
+		case msg2 := <-ch2:
+			fmt.Println("Got:", msg2)
+			TWO_COUNTER++
+		}
+	}
+
+	fmt.Println("ONE_COUNTER:", ONE_COUNTER)
+	fmt.Println("TWO_COUNTER:", TWO_COUNTER)
 }
 
 // TUTOR: Default case makes select non-blocking - it runs if no channels are ready.
@@ -51,6 +106,38 @@ func demonstrateSelectDefault() {
 	// TODO: Use select with default to avoid blocking
 	// TODO: Show how default enables non-blocking channel operations
 	// TODO: Demonstrate polling pattern with default case
+
+	fmt.Println("=== Select with Default Case ===")
+
+	ch := make(chan int)
+
+	select {
+	case <-ch:
+		fmt.Println("Received from channel")
+	default:
+		fmt.Println("No channel ready")
+	}
+
+	fmt.Println("polling pattern with default case")
+
+	ch2 := make(chan int)
+
+	go func() {
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+		ch2 <- 1
+	}()
+
+	for {
+		select {
+		case <-ch2:
+			fmt.Println("Received from channel")
+			return
+		default:
+			fmt.Println("No channel ready")
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+
 }
 
 // TUTOR: Select can handle both send and receive operations in the same statement.
@@ -66,6 +153,51 @@ func demonstrateMixedOperations() {
 	// TODO: Use select with both send and receive cases
 	// TODO: Show how select handles different operation types
 	// TODO: Demonstrate that select works with any channel operation
+
+	workCh := make(chan int)
+	resultCh := make(chan string)
+	shutdownCh := make(chan bool)
+
+	// Worker that handles multiple concerns simultaneously
+	go func() {
+		var pendingResult string
+
+		for {
+			select {
+			case work := <-workCh:
+				pendingResult = fmt.Sprintf("Processed %d", work)
+				fmt.Printf("Received work: %d\n", work)
+
+			case resultCh <- pendingResult: // Only if someone's listening
+				if pendingResult != "" {
+					fmt.Printf("Sent result: %s\n", pendingResult)
+					pendingResult = ""
+				}
+
+			case <-shutdownCh: // Can handle shutdown anytime
+				fmt.Println("Worker shutting down...")
+				return
+
+			default:
+				// Do housekeeping while idle
+				fmt.Print(".")
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}()
+
+	// Send some work
+	time.Sleep(500 * time.Millisecond)
+	workCh <- 42
+
+	// Receive result
+	result := <-resultCh
+	fmt.Printf("Main received: %s\n", result)
+
+	// Shutdown worker
+	shutdownCh <- true
+	time.Sleep(100 * time.Millisecond)
+	fmt.Println("Mixed operations demo complete!")
 }
 
 // TUTOR: Timeouts with select prevent operations from hanging forever.
@@ -81,6 +213,22 @@ func demonstrateBasicTimeout() {
 	// TODO: Use time.After() to create a timeout channel
 	// TODO: Race the operation against the timeout with select
 	// TODO: Show graceful handling when timeout occurs
+
+	ch := make(chan int)
+
+	go func() {
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+		ch <- 1
+	}()
+
+	select {
+	case <-time.After(700 * time.Millisecond):
+		fmt.Println("Timeout!")
+	case <-ch:
+		fmt.Println("Received from channel")
+	}
+
+	time.Sleep(1300 * time.Millisecond)
 }
 
 // TUTOR: Select with channels provides elegant control flow for concurrent programs.
@@ -155,11 +303,11 @@ func main() {
 	// TODO: Implement each demonstration function
 	// Build understanding of channel control flow
 
-	demonstrateBasicSelect()
+	// demonstrateBasicSelect()
 	// demonstrateSelectRandomness()
 	// demonstrateSelectDefault()
 	// demonstrateMixedOperations()
-	// demonstrateBasicTimeout()
+	demonstrateBasicTimeout()
 	// demonstrateControlFlow()
 	// demonstrateEmptySelect()
 	// demonstrateNilChannelSelect()
