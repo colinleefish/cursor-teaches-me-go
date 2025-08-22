@@ -244,6 +244,64 @@ func demonstrateControlFlow() {
 	// TODO: Handle completion signals from different goroutines
 	// TODO: Show how select creates clean control flow
 	// TODO: Compare with other coordination approaches conceptually
+
+	workDone := make(chan string)
+	errors := make(chan error)
+	shutdown := make(chan bool)
+	heartbeat := make(chan bool)
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		workDone <- "Database backup completed"
+	}()
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		workDone <- "Email notifications sent"
+	}()
+
+	go func() {
+		time.Sleep(3 * time.Second)
+		errors <- fmt.Errorf("Database backup failed")
+	}()
+
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				heartbeat <- true
+			case <-shutdown:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
+	completedTasks := 0
+	maxTasks := 2
+
+	for {
+		select {
+		case work := <-workDone:
+			fmt.Printf("Work completed: %s\n", work)
+			completedTasks++
+			if completedTasks >= maxTasks {
+				fmt.Println("All tasks completed")
+				shutdown <- true
+				return
+			}
+		case err := <-errors:
+			fmt.Printf("Error: %v\n", err)
+		case <-heartbeat:
+			fmt.Println("Heartbeat received")
+		case <-time.After(5 * time.Second):
+			fmt.Println("Timeout: No activity for 5 seconds")
+			shutdown <- true
+			return
+		}
+	}
+
 }
 
 // TUTOR: Empty select statement (select{}) blocks forever - it's Go's "park" operation.
@@ -259,6 +317,14 @@ func demonstrateEmptySelect() {
 	// TODO: Explain when you might want to block forever
 	// TODO: Demonstrate safe alternatives to empty select
 	// TODO: Use timeout to avoid actually hanging the program
+
+	go func() {
+		select {}
+	}()
+
+	time.Sleep(1 * time.Second)
+	fmt.Println("Empty select completed")
+
 }
 
 // TUTOR: Nil channels in select are ignored - they don't participate in selection.
@@ -274,6 +340,15 @@ func demonstrateNilChannelSelect() {
 	// TODO: Show how select ignores nil channels
 	// TODO: Demonstrate dynamic channel enabling/disabling
 	// TODO: Show how this can be useful for conditional logic
+
+	var ch chan int
+
+	select {
+	case <-ch:
+		fmt.Println("Received from channel")
+	default:
+		fmt.Println("No channel ready")
+	}
 }
 
 // Helper function to create a channel that sends after delay
@@ -307,10 +382,10 @@ func main() {
 	// demonstrateSelectRandomness()
 	// demonstrateSelectDefault()
 	// demonstrateMixedOperations()
-	demonstrateBasicTimeout()
+	// demonstrateBasicTimeout()
 	// demonstrateControlFlow()
 	// demonstrateEmptySelect()
-	// demonstrateNilChannelSelect()
+	demonstrateNilChannelSelect()
 
 	fmt.Println("\n🎉 Congratulations! You control channel flow with select!")
 	fmt.Println("Next: Move to Level 2 for safety concepts and channel types")

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"sync"
+	"time"
 )
 
 // TUTOR: Race conditions occur when multiple goroutines access shared data concurrently.
@@ -18,6 +20,27 @@ func demonstrateRaceCondition() {
 	// TODO: Launch multiple goroutines that increment the shared variable
 	// TODO: Show that the final result is unpredictable due to race conditions
 	// TODO: Run multiple times to show inconsistent results
+
+	sharedCounter := 0
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100000; i++ {
+			sharedCounter++
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100000; i++ {
+			sharedCounter++
+		}
+	}()
+
+	wg.Wait()
+	fmt.Println("Shared counter:", sharedCounter)
 }
 
 // TUTOR: Go's race detector can automatically find race conditions in your code.
@@ -48,6 +71,35 @@ func demonstrateMutexSolution() {
 	// TODO: Show that mutex prevents race conditions
 	// TODO: Compare results with and without mutex protection
 	// TODO: Demonstrate proper Lock/Unlock patterns
+
+	sharedCounter := 0
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	mu := sync.Mutex{}
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100000; i++ {
+			mu.Lock()
+			sharedCounter++
+			mu.Unlock()
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100000; i++ {
+			mu.Lock()
+			sharedCounter++
+			mu.Unlock()
+		}
+	}()
+
+	wg.Wait()
+	fmt.Println("Shared counter:", sharedCounter)
+
 }
 
 // TUTOR: Channels provide race-free communication between goroutines.
@@ -63,6 +115,66 @@ func demonstrateChannelSolution() {
 	// TODO: Show how channels eliminate race conditions naturally
 	// TODO: Demonstrate the "share memory by communicating" principle
 	// TODO: Compare channel approach with mutex approach
+
+	sum := 0
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	ch3 := make(chan int)
+
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100000; i++ {
+			ch1 <- 1
+		}
+		close(ch1)
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100000; i++ {
+			ch2 <- 1
+		}
+		close(ch2)
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100000; i++ {
+			ch3 <- 1
+		}
+		close(ch3)
+	}()
+
+	for {
+		select {
+		case i, ok := <-ch1:
+			if !ok {
+				ch1 = nil
+			} else {
+				sum += i
+			}
+		case i, ok := <-ch2:
+			if !ok {
+				ch2 = nil
+			} else {
+				sum += i
+			}
+		case i, ok := <-ch3:
+			if !ok {
+				ch3 = nil
+			} else {
+				sum += i
+			}
+		}
+		if ch1 == nil && ch2 == nil && ch3 == nil {
+			break
+		}
+	}
+
+	fmt.Println("Sum:", sum)
 }
 
 // TUTOR: Read-write mutexes allow concurrent readers but exclusive writers.
@@ -70,14 +182,104 @@ func demonstrateChannelSolution() {
 // RLock()/RUnlock() for readers, Lock()/Unlock() for writers.
 // Multiple readers can proceed simultaneously, but writers get exclusive access.
 // RWMutex improves performance when reads vastly outnumber writes.
-// TODO: Demonstrate read-write mutex optimization
 func demonstrateRWMutex() {
-	fmt.Println("\n=== Read-Write Mutex ===")
+	fmt.Println("\n=== Read-Write Mutex Comparison ===")
 
-	// TODO: Show performance difference between Mutex and RWMutex
-	// TODO: Demonstrate concurrent readers with RWMutex
-	// TODO: Show exclusive writer access
-	// TODO: Compare timing for read-heavy workloads
+	data := map[string]int{"counter": 0}
+
+	// Test with regular Mutex - all operations are exclusive
+	fmt.Println("Testing with regular Mutex...")
+	testWithMutex(data)
+
+	// Test with RWMutex - readers can run concurrently
+	fmt.Println("\nTesting with RWMutex...")
+	testWithRWMutex(data)
+}
+
+func testWithMutex(data map[string]int) {
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	readers := 5
+	writers := 1
+	operations := 100000
+
+	start := time.Now()
+
+	// Start multiple reader goroutines
+	for i := 0; i < readers; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < operations; j++ {
+				mu.Lock()                        // Exclusive lock for read
+				_ = data["counter"]              // Simulate read work
+				time.Sleep(time.Nanosecond * 10) // Small delay to show contention
+				mu.Unlock()
+			}
+		}(i)
+	}
+
+	// Start writer goroutine
+	for i := 0; i < writers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < operations/10; j++ { // Fewer writes
+				mu.Lock()
+				data["counter"]++
+				time.Sleep(time.Nanosecond * 50) // Writes take longer
+				mu.Unlock()
+			}
+		}()
+	}
+
+	wg.Wait()
+	duration := time.Since(start)
+	fmt.Printf("Mutex: %d readers, %d writers completed in %v\n", readers, writers, duration)
+}
+
+func testWithRWMutex(data map[string]int) {
+	var rwmu sync.RWMutex
+	var wg sync.WaitGroup
+
+	readers := 5
+	writers := 1
+	operations := 100000
+
+	start := time.Now()
+
+	// Start multiple reader goroutines
+	for i := 0; i < readers; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < operations; j++ {
+				rwmu.RLock()                     // Shared lock for read - can run concurrently!
+				_ = data["counter"]              // Simulate read work
+				time.Sleep(time.Nanosecond * 10) // Small delay to show benefit
+				rwmu.RUnlock()
+			}
+		}(i)
+	}
+
+	// Start writer goroutine
+	for i := 0; i < writers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < operations/10; j++ { // Fewer writes
+				rwmu.Lock() // Exclusive lock for write
+				data["counter"]++
+				time.Sleep(time.Nanosecond * 50) // Writes take longer
+				rwmu.Unlock()
+			}
+		}()
+	}
+
+	wg.Wait()
+	duration := time.Since(start)
+	fmt.Printf("RWMutex: %d readers, %d writers completed in %v\n", readers, writers, duration)
 }
 
 // TUTOR: Atomic operations provide lock-free synchronization for simple values.
@@ -100,11 +302,11 @@ func main() {
 	fmt.Printf("Using %d CPU cores\n", runtime.NumCPU())
 
 	// Build understanding of concurrent safety
-	demonstrateRaceCondition()
+	// demonstrateRaceCondition()
 	// demonstrateRaceDetector()
 	// demonstrateMutexSolution()
 	// demonstrateChannelSolution()
-	// demonstrateRWMutex()
+	demonstrateRWMutex()
 	// demonstrateAtomicOperations()
 
 	fmt.Println("\n✅ Race condition fundamentals complete!")

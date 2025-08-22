@@ -90,7 +90,7 @@ This curriculum follows a strict dependency order - each level builds on the pre
 - [x] **1.1 Goroutines** ✅ 
 - [x] **1.2 WaitGroups** ✅
 - [x] **1.3 Channels** ✅
-- [ ] **1.4 Select**
+- [x] **1.4 Select** ✅
 
 ### Level 2: Core Concepts (Safety & Types)
 - [ ] **2.1 Race Conditions**
