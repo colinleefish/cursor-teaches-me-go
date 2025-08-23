@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 )
 
 // TUTOR: Channel closing signals "no more values will be sent" to receivers.
@@ -17,6 +18,39 @@ func demonstrateBasicClosing() {
 	// TODO: Show that closed channels can still be read from
 	// TODO: Demonstrate zero value return after channel is drained
 	// TODO: Show panic behavior when sending to closed channel
+
+	ch := make(chan int, 2)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer fmt.Println("channel closed")
+		defer close(ch)
+		ch <- 1
+		ch <- 2
+	}()
+
+	wg.Wait()
+
+	for v := range ch {
+		fmt.Println(v)
+	}
+
+	v, ok := <-ch
+	fmt.Println("value from channel", v, "ok", ok)
+
+	defer func() {
+
+		if recover() != nil {
+			fmt.Println("recovered from panic")
+			return
+		}
+		fmt.Println("done")
+	}()
+
+	ch <- 3
+
 }
 
 // TUTOR: The comma ok idiom detects whether a channel is closed.
@@ -27,7 +61,7 @@ func demonstrateBasicClosing() {
 // TODO: Demonstrate comma ok idiom for closure detection
 func demonstrateCommaOkIdiom() {
 	fmt.Println("\n=== Comma Ok Idiom ===")
-
+	fmt.Println(" implemented in demonstrateBasicClosing")
 	// TODO: Create channel and send some values
 	// TODO: Use comma ok idiom to receive with status
 	// TODO: Show different ok values before and after closing
@@ -42,7 +76,7 @@ func demonstrateCommaOkIdiom() {
 // TODO: Demonstrate range loops with channel closure
 func demonstrateRangeWithClosure() {
 	fmt.Println("\n=== Range Loops and Closure ===")
-
+	fmt.Println(" implemented in demonstrateBasicClosing")
 	// TODO: Create producer that sends values then closes channel
 	// TODO: Use range loop to consume all values until closure
 	// TODO: Show automatic loop termination on channel close
@@ -57,7 +91,7 @@ func demonstrateRangeWithClosure() {
 // TODO: Demonstrate sender-closes principle
 func demonstrateSenderCloses() {
 	fmt.Println("\n=== Sender-Closes Principle ===")
-
+	fmt.Println(" implemented in demonstrateBasicClosing")
 	// TODO: Show proper pattern where sender closes channel
 	// TODO: Demonstrate what happens when receiver tries to close
 	// TODO: Show coordination patterns for multiple senders
@@ -77,6 +111,7 @@ func demonstrateSafeClosing() {
 	// TODO: Demonstrate sync.Once pattern for safe closing
 	// TODO: Show flag-based approaches to prevent double closing
 	// TODO: Illustrate defensive programming practices
+
 }
 
 // TUTOR: defer statements ensure channels are closed even on early returns.
@@ -109,21 +144,6 @@ func demonstrateClosurePropagation() {
 	// TODO: Show proper resource cleanup in pipeline teardown
 }
 
-// TUTOR: Fan-out patterns require careful coordination for closing.
-// When one input channel feeds multiple output channels.
-// All outputs should close when input closes.
-// Use WaitGroups or other coordination for complex topologies.
-// Fan-out closure patterns prevent partial system shutdown.
-// TODO: Demonstrate fan-out closure coordination
-func demonstrateFanOutClosure() {
-	fmt.Println("\n=== Fan-Out Closure Coordination ===")
-
-	// TODO: Create fan-out pattern with multiple output channels
-	// TODO: Show coordinated closing when input channel closes
-	// TODO: Demonstrate WaitGroup usage for closure synchronization
-	// TODO: Show proper handling of complex channel topologies
-}
-
 // TUTOR: Testing channel closure requires careful timing and coordination.
 // Test cases should verify proper closure behavior and timing.
 // Use timeouts to prevent tests from hanging on unclosed channels.
@@ -150,7 +170,6 @@ func main() {
 	// demonstrateSafeClosing()
 	// demonstrateDeferClosing()
 	// demonstrateClosurePropagation()
-	// demonstrateFanOutClosure()
 	// demonstrateClosureTesting()
 
 	fmt.Println("\n✅ Channel closing fundamentals complete!")

@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"sync"
+	"time"
 )
 
 // TUTOR: Directional channels restrict operations to either send-only or receive-only.
@@ -17,6 +20,44 @@ func demonstrateDirectionalTypes() {
 	// TODO: Convert to send-only and receive-only channels
 	// TODO: Show that directional channels prevent wrong operations
 	// TODO: Demonstrate type safety with directional channels
+
+	twoWayChannel := make(chan int)
+
+	var wg sync.WaitGroup
+
+	go func() {
+		twoWayChannel <- 42 // this gets blocked until the channel is read
+	}()
+
+	fmt.Println(<-twoWayChannel) // this gets blocked until the channel is written
+
+	receiveAndPrint := func(ch <-chan int) {
+		defer wg.Done()
+		for v := range ch {
+			fmt.Println(v)
+		}
+	}
+
+	sendToChannel := func(ch chan<- int) {
+		defer wg.Done()
+		ticker := time.NewTicker(1 * time.Second)
+		defer close(ch)
+		defer ticker.Stop()
+		for i := 0; i < 5; i++ {
+			select {
+			case <-ticker.C:
+				ch <- rand.Intn(100)
+			}
+		}
+	}
+
+	wg.Add(2)
+
+	go receiveAndPrint(twoWayChannel)
+
+	go sendToChannel(twoWayChannel)
+
+	wg.Wait()
 }
 
 // TUTOR: Send-only channels can only send values, not receive them.
@@ -122,20 +163,54 @@ func demonstratePipelineDesign() {
 	// TODO: Show how stages connect through type-safe interfaces
 	// TODO: Demonstrate composable pipeline architecture
 	// TODO: Show testing benefits of clear channel directions
+
+	double := func(in <-chan int, out chan<- int) {
+		defer close(out)
+		for v := range in {
+			out <- v * 2
+		}
+	}
+
+	square := func(in <-chan int, out chan<- int) {
+		defer close(out)
+		for v := range in {
+			out <- v * v
+		}
+	}
+	step1 := make(chan int)
+	step2 := make(chan int)
+	step3 := make(chan int)
+
+	go double(step1, step2)
+
+	go square(step2, step3)
+
+	go func() {
+		for i := 0; i < 5; i++ {
+			step1 <- i
+		}
+		close(step1)
+	}()
+
+	for v := range step3 {
+		fmt.Println(v)
+	}
+
+	fmt.Println("Done")
 }
 
 func main() {
 	fmt.Println("📡 Go Concurrency: Directional Channels")
 
 	// Build understanding of channel type safety
-	demonstrateDirectionalTypes()
+	// demonstrateDirectionalTypes()
 	// demonstrateSendOnlyChannels()
 	// demonstrateReceiveOnlyChannels()
 	// demonstrateChannelConversion()
 	// demonstrateAPIDesign()
 	// demonstrateClosingBehavior()
 	// demonstrateRangeWithDirectional()
-	// demonstratePipelineDesign()
+	demonstratePipelineDesign()
 
 	fmt.Println("\n✅ Directional channel fundamentals complete!")
 	fmt.Println("Next: Learn about buffered channels for flow control")

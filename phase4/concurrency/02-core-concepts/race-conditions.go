@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -185,18 +186,18 @@ func demonstrateChannelSolution() {
 func demonstrateRWMutex() {
 	fmt.Println("\n=== Read-Write Mutex Comparison ===")
 
-	data := map[string]int{"counter": 0}
+	counter := 0
 
 	// Test with regular Mutex - all operations are exclusive
 	fmt.Println("Testing with regular Mutex...")
-	testWithMutex(data)
+	testWithMutex(&counter)
 
 	// Test with RWMutex - readers can run concurrently
 	fmt.Println("\nTesting with RWMutex...")
-	testWithRWMutex(data)
+	testWithRWMutex(&counter)
 }
 
-func testWithMutex(data map[string]int) {
+func testWithMutex(counter *int) {
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
@@ -213,7 +214,7 @@ func testWithMutex(data map[string]int) {
 			defer wg.Done()
 			for j := 0; j < operations; j++ {
 				mu.Lock()                        // Exclusive lock for read
-				_ = data["counter"]              // Simulate read work
+				_ = *counter                     // Simulate read work
 				time.Sleep(time.Nanosecond * 10) // Small delay to show contention
 				mu.Unlock()
 			}
@@ -227,7 +228,7 @@ func testWithMutex(data map[string]int) {
 			defer wg.Done()
 			for j := 0; j < operations/10; j++ { // Fewer writes
 				mu.Lock()
-				data["counter"]++
+				(*counter)++
 				time.Sleep(time.Nanosecond * 50) // Writes take longer
 				mu.Unlock()
 			}
@@ -239,7 +240,7 @@ func testWithMutex(data map[string]int) {
 	fmt.Printf("Mutex: %d readers, %d writers completed in %v\n", readers, writers, duration)
 }
 
-func testWithRWMutex(data map[string]int) {
+func testWithRWMutex(counter *int) {
 	var rwmu sync.RWMutex
 	var wg sync.WaitGroup
 
@@ -256,7 +257,7 @@ func testWithRWMutex(data map[string]int) {
 			defer wg.Done()
 			for j := 0; j < operations; j++ {
 				rwmu.RLock()                     // Shared lock for read - can run concurrently!
-				_ = data["counter"]              // Simulate read work
+				_ = *counter                     // Simulate read work
 				time.Sleep(time.Nanosecond * 10) // Small delay to show benefit
 				rwmu.RUnlock()
 			}
@@ -270,7 +271,7 @@ func testWithRWMutex(data map[string]int) {
 			defer wg.Done()
 			for j := 0; j < operations/10; j++ { // Fewer writes
 				rwmu.Lock() // Exclusive lock for write
-				data["counter"]++
+				(*counter)++
 				time.Sleep(time.Nanosecond * 50) // Writes take longer
 				rwmu.Unlock()
 			}
@@ -295,6 +296,62 @@ func demonstrateAtomicOperations() {
 	// TODO: Show atomic increment operations
 	// TODO: Compare performance with mutex-based approaches
 	// TODO: Demonstrate atomic load/store operations
+
+	atomicCounter := atomic.Int32{}
+	counter := 0
+
+	start := time.Now()
+	testWithMutexVsAtomic(&counter)
+	duration := time.Since(start)
+	fmt.Println("Mutex vs Atomic duration:", duration)
+
+	start = time.Now()
+	testWithAtomic(&atomicCounter)
+	duration = time.Since(start)
+	fmt.Println("Atomic duration:", duration)
+}
+
+func testWithAtomic(atomicCounter *atomic.Int32) {
+	var wg sync.WaitGroup
+
+	operations := 100000000
+	numGoroutines := runtime.NumCPU()
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < operations/numGoroutines; j++ {
+				atomicCounter.Add(1)
+			}
+		}()
+	}
+
+	wg.Wait()
+	fmt.Println("Atomic counter:", atomicCounter.Load())
+}
+
+func testWithMutexVsAtomic(counter *int) {
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	operations := 100000000
+	numGoroutines := runtime.NumCPU()
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < operations/numGoroutines; j++ {
+				mu.Lock()
+				(*counter)++
+				mu.Unlock()
+			}
+		}()
+	}
+
+	wg.Wait()
+	fmt.Println("Mutex counter:", *counter)
 }
 
 func main() {
@@ -306,8 +363,8 @@ func main() {
 	// demonstrateRaceDetector()
 	// demonstrateMutexSolution()
 	// demonstrateChannelSolution()
-	demonstrateRWMutex()
-	// demonstrateAtomicOperations()
+	// demonstrateRWMutex()
+	demonstrateAtomicOperations()
 
 	fmt.Println("\n✅ Race condition fundamentals complete!")
 	fmt.Println("Next: Learn about directional channels for API safety")
