@@ -98,13 +98,13 @@ This curriculum follows a strict dependency order - each level builds on the pre
 - [x] **2.1 Race Conditions** ✅
 - [x] **2.2 Channel Types** ✅
 - [x] **2.3 Buffered Channels** ✅
-- [ ] **2.4 Channel Closing**
-- [ ] **2.5 Error Handling**
+- [x] **2.4 Channel Closing** ✅
+- [x] **2.5 Error Handling** ✅
 
 ### Level 3: Basic Patterns (Simple Compositions)
 
-- [ ] **3.1 Producer-Consumer**
-- [ ] **3.2 Worker Pools**
+- [x] **3.1 Producer-Consumer** ✅
+- [x] **3.2 Worker Pools** ✅
 - [ ] **3.3 Pipeline**
 - [ ] **3.4 Bounded Parallelism**
 

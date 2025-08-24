@@ -1,8 +1,19 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
+	"runtime"
+	"strings"
+	"sync"
+	"time"
 )
+
+type Result struct {
+	Value int
+	Err   error
+}
 
 // TUTOR: Error handling in concurrent programs requires careful coordination.
 // Goroutines cannot return errors directly to their callers.
@@ -17,6 +28,27 @@ func demonstrateBasicErrorCommunication() {
 	// TODO: Use channels to send errors back to main goroutine
 	// TODO: Show proper error checking and handling patterns
 	// TODO: Demonstrate different error communication strategies
+
+	resultCh := make(chan Result, 1)
+
+	// this is a routine that produce either a result or an error
+	go func() {
+		defer close(resultCh)
+		time.Sleep(1 * time.Second)
+		result := rand.Intn(2)
+		if result == 0 {
+			resultCh <- Result{Err: errors.New("error")}
+		} else {
+			resultCh <- Result{Value: 42}
+		}
+	}()
+
+	result := <-resultCh
+	if result.Err != nil {
+		fmt.Println("Error:", result.Err)
+	} else {
+		fmt.Println("Result:", result.Value)
+	}
 }
 
 // TUTOR: Error channels provide dedicated paths for error communication.
@@ -28,10 +60,90 @@ func demonstrateBasicErrorCommunication() {
 func demonstrateErrorChannels() {
 	fmt.Println("\n=== Dedicated Error Channels ===")
 
-	// TODO: Create separate channels for data and errors
-	// TODO: Show goroutines sending to both channels appropriately
-	// TODO: Demonstrate error collection and handling patterns
-	// TODO: Show benefits of separating errors from normal data
+	// EXAMPLE: Processing multiple files concurrently
+	files := []string{"config.txt", "data.csv", "invalid.xml", "readme.md", "missing.json"}
+
+	// Separate channels for results and errors
+	dataCh := make(chan string, len(files))
+	errCh := make(chan error, len(files))
+
+	// Process files concurrently
+	for _, filename := range files {
+		go func(file string) {
+			// Simulate file processing
+			time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+
+			// Simulate different outcomes
+			switch {
+			case strings.Contains(file, "missing"):
+				errCh <- fmt.Errorf("file not found: %s", file)
+			case strings.Contains(file, "invalid"):
+				errCh <- fmt.Errorf("invalid format: %s", file)
+			default:
+				dataCh <- fmt.Sprintf("processed: %s", file)
+			}
+		}(filename)
+	}
+
+	// Collect results with proper handling
+	processed := 0
+	errors := []error{}
+	results := []string{}
+
+	for processed < len(files) {
+		select {
+		case result := <-dataCh:
+			results = append(results, result)
+			processed++
+			fmt.Printf("✅ %s\n", result)
+
+		case err := <-errCh:
+			errors = append(errors, err)
+			processed++
+			fmt.Printf("❌ %v\n", err)
+
+		case <-time.After(200 * time.Millisecond):
+			fmt.Println("⏰ Timeout waiting for results")
+			break
+		}
+	}
+
+	// Summary
+	fmt.Printf("\n📊 Summary: %d successful, %d errors\n", len(results), len(errors))
+
+	// ALTERNATIVE: Error aggregation pattern
+	fmt.Println("\n🔄 Alternative: Error aggregation:")
+
+	allErrorsCh := make(chan error, 10)
+	dataStreamCh := make(chan int, 10)
+
+	// Multiple workers, some failing
+	for i := 0; i < 5; i++ {
+		go func(id int) {
+			if id%2 == 0 {
+				// Success case
+				dataStreamCh <- id * 10
+			} else {
+				// Error case
+				allErrorsCh <- fmt.Errorf("worker %d failed", id)
+			}
+		}(i)
+	}
+
+	// Collect everything
+	time.Sleep(50 * time.Millisecond)
+	close(dataStreamCh)
+	close(allErrorsCh)
+
+	fmt.Println("📥 Data received:")
+	for data := range dataStreamCh {
+		fmt.Printf("  Data: %d\n", data)
+	}
+
+	fmt.Println("🚨 Errors received:")
+	for err := range allErrorsCh {
+		fmt.Printf("  Error: %v\n", err)
+	}
 }
 
 // TUTOR: Result types combine values and errors in single channel messages.
@@ -42,7 +154,7 @@ func demonstrateErrorChannels() {
 // TODO: Demonstrate result type patterns for error handling
 func demonstrateResultTypes() {
 	fmt.Println("\n=== Result Type Patterns ===")
-
+	fmt.Println("\nImplemented in demonstrateBasicErrorCommunication")
 	// TODO: Define result type that contains value and error
 	// TODO: Show goroutines sending result objects through channels
 	// TODO: Demonstrate result unpacking and error checking
@@ -62,6 +174,87 @@ func demonstrateErrorAggregation() {
 	// TODO: Collect errors from all goroutines
 	// TODO: Show different aggregation strategies (first error, all errors)
 	// TODO: Demonstrate decision-making based on error patterns
+
+	wg := sync.WaitGroup{}
+	workers := runtime.NumCPU()
+
+	errCh := make(chan error, workers)
+	resultCh := make(chan int, workers)
+
+	critical := false
+	results := []int{}
+	mu := sync.Mutex{}
+
+	// Start monitoring BEFORE workers
+	monitorDone := make(chan bool)
+	go func() {
+		errCounter := 0
+		completed := 0
+
+		for completed < workers && !critical {
+			select {
+			case err := <-errCh:
+				fmt.Println("❌ Error:", err)
+				errCounter++
+				completed++
+				if errCounter > runtime.NumCPU()-5 { // Quit early if >2 errors
+					mu.Lock()
+					critical = true
+					mu.Unlock()
+					fmt.Println("🚨 TOO MANY ERRORS - ABORTING!")
+				}
+			case result := <-resultCh:
+				fmt.Printf("✅ Success: worker %d\n", result)
+				mu.Lock()
+				results = append(results, result)
+				mu.Unlock()
+				completed++
+			}
+		}
+		monitorDone <- true
+	}()
+
+	// Start workers AFTER monitoring is ready
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			duration := time.Duration(rand.Intn(500)) * time.Millisecond
+			time.Sleep(duration)
+
+			// Check if we should abort early
+			mu.Lock()
+			shouldAbort := critical
+			mu.Unlock()
+
+			if shouldAbort {
+				fmt.Printf("⏹️ Worker %d: Aborting due to critical errors\n", id)
+				return
+			}
+
+			seed := rand.Intn(100)
+			if seed < 50 {
+				errCh <- fmt.Errorf("worker %d failed", id)
+			} else {
+				resultCh <- id
+			}
+		}(i)
+	}
+
+	// Wait for monitor to finish (guaranteed to happen)
+	<-monitorDone
+	fmt.Println("🏁 Monitor finished")
+
+	// Clean up
+	wg.Wait()
+	close(errCh)
+	close(resultCh)
+
+	mu.Lock()
+	fmt.Printf("📊 Final: %d results, critical=%v\n", len(results), critical)
+	fmt.Println("Results:", results)
+	mu.Unlock()
+
 }
 
 // TUTOR: Fail-fast patterns stop processing when critical errors occur.
@@ -88,10 +281,110 @@ func demonstrateFailFast() {
 func demonstrateGracefulDegradation() {
 	fmt.Println("\n=== Graceful Degradation ===")
 
-	// TODO: Create system with critical and optional components
-	// TODO: Show continued operation when optional components fail
-	// TODO: Demonstrate fallback mechanisms and alternative paths
-	// TODO: Show user experience preservation during partial failures
+	// EXAMPLE: User profile page with multiple data sources
+	// userID := 123
+
+	// Different services with different importance
+	type ServiceResult struct {
+		Name     string
+		Data     string
+		Error    error
+		Critical bool // Some services are critical, others optional
+	}
+
+	results := make(chan ServiceResult, 4)
+
+	// Critical service: User basic info (MUST work)
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		// Simulate: this one always works
+		results <- ServiceResult{
+			Name:     "UserService",
+			Data:     "John Doe, john@example.com",
+			Critical: true,
+		}
+	}()
+
+	// Optional service: User avatar (nice to have)
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		// Simulate: 50% chance of failure
+		if rand.Intn(2) == 0 {
+			results <- ServiceResult{
+				Name:     "AvatarService",
+				Error:    errors.New("avatar service down"),
+				Critical: false,
+			}
+		} else {
+			results <- ServiceResult{
+				Name:     "AvatarService",
+				Data:     "avatar_url_123.jpg",
+				Critical: false,
+			}
+		}
+	}()
+
+	// Optional service: Recommendations (nice to have)
+	go func() {
+		time.Sleep(80 * time.Millisecond)
+		// Simulate: this one often fails
+		results <- ServiceResult{
+			Name:     "RecommendationService",
+			Error:    errors.New("recommendations unavailable"),
+			Critical: false,
+		}
+	}()
+
+	// Optional service: Activity feed (nice to have)
+	go func() {
+		time.Sleep(30 * time.Millisecond)
+		results <- ServiceResult{
+			Name:     "ActivityService",
+			Data:     "3 new notifications",
+			Critical: false,
+		}
+	}()
+
+	// Collect results and decide what to show user
+	profile := make(map[string]string)
+	criticalFailed := false
+	optionalFailures := 0
+	servicesReceived := 0
+
+	for servicesReceived < 4 {
+		result := <-results
+		servicesReceived++
+
+		if result.Error != nil {
+			if result.Critical {
+				criticalFailed = true
+				fmt.Printf("🚨 CRITICAL FAILURE: %s - %v\n", result.Name, result.Error)
+			} else {
+				optionalFailures++
+				fmt.Printf("⚠️  Optional failure: %s - %v\n", result.Name, result.Error)
+			}
+		} else {
+			profile[result.Name] = result.Data
+			fmt.Printf("✅ %s: %s\n", result.Name, result.Data)
+		}
+	}
+
+	// Decision making: Can we still serve the user?
+	fmt.Println("\n🎯 System Decision:")
+	if criticalFailed {
+		fmt.Println("❌ Cannot serve user - critical service failed")
+	} else {
+		fmt.Println("✅ Serving user with available data:")
+		for service, data := range profile {
+			fmt.Printf("  - %s: %s\n", service, data)
+		}
+
+		if optionalFailures > 0 {
+			fmt.Printf("📉 Degraded experience: %d optional services failed\n", optionalFailures)
+		} else {
+			fmt.Println("🌟 Full experience: all services working")
+		}
+	}
 }
 
 // TUTOR: Error recovery patterns attempt to recover from transient failures.
@@ -118,10 +411,133 @@ func demonstrateErrorRecovery() {
 func demonstrateErrorLogging() {
 	fmt.Println("\n=== Error Logging and Monitoring ===")
 
-	// TODO: Show proper error logging from goroutines
-	// TODO: Demonstrate structured logging for correlation
-	// TODO: Show error counting and metrics collection
-	// TODO: Illustrate monitoring and alerting patterns
+	// Log entry structure
+	type LogEntry struct {
+		Timestamp time.Time
+		Level     string // INFO, WARN, ERROR
+		WorkerID  int
+		Message   string
+		Error     error
+	}
+
+	logCh := make(chan LogEntry, 20)
+
+	// Centralized logger goroutine
+	loggerDone := make(chan bool)
+	go func() {
+		fmt.Println("📝 Logger started...")
+		for log := range logCh {
+			timeStr := log.Timestamp.Format("15:04:05.000")
+			if log.Error != nil {
+				fmt.Printf("[%s] %s Worker-%d: %s | Error: %v\n",
+					timeStr, log.Level, log.WorkerID, log.Message, log.Error)
+			} else {
+				fmt.Printf("[%s] %s Worker-%d: %s\n",
+					timeStr, log.Level, log.WorkerID, log.Message)
+			}
+		}
+		loggerDone <- true
+	}()
+
+	// PATTERN 1: Workers send logs to central logger
+	fmt.Println("\n🔧 Pattern 1: Central logging channel")
+	wg := sync.WaitGroup{}
+
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(workerID int) {
+			defer wg.Done()
+
+			// Worker logs its lifecycle
+			logCh <- LogEntry{
+				Timestamp: time.Now(),
+				Level:     "INFO",
+				WorkerID:  workerID,
+				Message:   "Starting work",
+			}
+
+			// Simulate work with random outcome
+			workTime := time.Duration(rand.Intn(200)) * time.Millisecond
+			time.Sleep(workTime)
+
+			if rand.Intn(3) == 0 {
+				// Failure case
+				logCh <- LogEntry{
+					Timestamp: time.Now(),
+					Level:     "ERROR",
+					WorkerID:  workerID,
+					Message:   "Task failed",
+					Error:     fmt.Errorf("network timeout after %v", workTime),
+				}
+			} else {
+				// Success case
+				logCh <- LogEntry{
+					Timestamp: time.Now(),
+					Level:     "INFO",
+					WorkerID:  workerID,
+					Message:   fmt.Sprintf("Task completed in %v", workTime),
+				}
+			}
+
+		}(i)
+	}
+
+	// PATTERN 2: Batch processing with error counting
+	fmt.Println("\n📊 Pattern 2: Error metrics collection")
+	errorCounts := make(map[string]int)
+	mu := sync.Mutex{}
+
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func(workerID int) {
+			defer wg.Done()
+
+			operation := []string{"database", "api", "file"}[rand.Intn(3)]
+
+			if rand.Intn(4) == 0 { // 25% failure rate
+				errType := fmt.Sprintf("%s_error", operation)
+
+				logCh <- LogEntry{
+					Timestamp: time.Now(),
+					Level:     "ERROR",
+					WorkerID:  workerID,
+					Message:   fmt.Sprintf("%s operation failed", operation),
+					Error:     fmt.Errorf("%s connection failed", operation),
+				}
+
+				// Thread-safe error counting
+				mu.Lock()
+				errorCounts[errType]++
+				mu.Unlock()
+			} else {
+				logCh <- LogEntry{
+					Timestamp: time.Now(),
+					Level:     "INFO",
+					WorkerID:  workerID,
+					Message:   fmt.Sprintf("%s operation succeeded", operation),
+				}
+			}
+		}(i)
+	}
+
+	// Wait for all workers, then close log channel
+	wg.Wait()
+	close(logCh)
+
+	// Wait for logger to finish
+	<-loggerDone
+
+	// Print error summary
+	fmt.Println("\n📈 Error Summary:")
+	mu.Lock()
+	if len(errorCounts) == 0 {
+		fmt.Println("✅ No errors detected")
+	} else {
+		for errType, count := range errorCounts {
+			fmt.Printf("  %s: %d occurrences\n", errType, count)
+		}
+	}
+	mu.Unlock()
 }
 
 // TUTOR: Panic recovery in goroutines requires explicit defer/recover patterns.
@@ -158,7 +574,7 @@ func main() {
 	fmt.Println("🚨 Go Concurrency: Error Handling")
 
 	// Build understanding of concurrent error management
-	demonstrateBasicErrorCommunication()
+	// demonstrateBasicErrorCommunication()
 	// demonstrateErrorChannels()
 	// demonstrateResultTypes()
 	// demonstrateErrorAggregation()

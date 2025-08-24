@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 // TUTOR: Channel closing signals "no more values will be sent" to receivers.
@@ -142,6 +143,46 @@ func demonstrateClosurePropagation() {
 	// TODO: Show how closure propagates through pipeline stages
 	// TODO: Demonstrate graceful shutdown of complex systems
 	// TODO: Show proper resource cleanup in pipeline teardown
+
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
+	input := make(chan int, 10)
+	intermediate := make(chan int, 10)
+	output := make(chan int, 10)
+
+	double := func(in <-chan int, out chan<- int) {
+		defer wg.Done()
+		defer close(out)
+		for v := range in {
+			out <- v * 2
+		}
+	}
+
+	addFive := func(in <-chan int, out chan<- int) {
+		defer wg.Done()
+		defer close(out)
+		for v := range in {
+			out <- v + 5
+		}
+	}
+
+	go addFive(input, intermediate)
+	go double(intermediate, output)
+
+	go func() {
+		defer wg.Done()
+		defer close(input)
+		for i := 0; i < 10; i++ {
+			input <- i
+		}
+	}()
+
+	for v := range output {
+		fmt.Println(v)
+	}
+
+	wg.Wait()
 }
 
 // TUTOR: Testing channel closure requires careful timing and coordination.
@@ -153,23 +194,148 @@ func demonstrateClosurePropagation() {
 func demonstrateClosureTesting() {
 	fmt.Println("\n=== Testing Channel Closure ===")
 
-	// TODO: Show test patterns for verifying channel closure
-	// TODO: Demonstrate timeout usage to prevent test hangs
-	// TODO: Show testing of error scenarios and edge cases
-	// TODO: Illustrate thorough lifecycle testing approaches
+	// 1. TEST IF CHANNEL IS CLOSED
+	fmt.Println("🔍 Testing channel closure detection:")
+	ch := make(chan int)
+
+	go func() {
+		ch <- 42
+		close(ch)
+	}()
+
+	// Receive and check if channel is closed
+	value, ok := <-ch
+	if ok {
+		fmt.Printf("✅ Received value: %d (channel open)\n", value)
+	}
+
+	value, ok = <-ch // Try to receive again
+	if !ok {
+		fmt.Println("✅ Channel is closed (ok=false)")
+	}
+
+	// 2. TEST WITH TIMEOUT (prevent hanging tests)
+	fmt.Println("\n⏰ Testing with timeout:")
+	slowChannel := make(chan int)
+
+	go func() {
+		time.Sleep(50 * time.Millisecond) // Simulate work
+		slowChannel <- 99
+		close(slowChannel)
+	}()
+
+	select {
+	case val := <-slowChannel:
+		fmt.Printf("✅ Received: %d within timeout\n", val)
+	case <-time.After(100 * time.Millisecond):
+		fmt.Println("❌ Test timed out!")
+	}
+
+	// Check if closed after timeout
+	select {
+	case val, ok := <-slowChannel:
+		if !ok {
+			fmt.Println("✅ Channel properly closed")
+		} else {
+			fmt.Printf("⚠️ Unexpected value: %d\n", val)
+		}
+	case <-time.After(10 * time.Millisecond):
+		fmt.Println("❌ Channel not closed - potential leak!")
+	}
+
+	// 3. TEST RANGE BEHAVIOR WITH CLOSURE
+	fmt.Println("\n🔄 Testing range with closure:")
+	rangeChannel := make(chan int)
+
+	go func() {
+		for i := 1; i <= 3; i++ {
+			rangeChannel <- i
+		}
+		close(rangeChannel)
+		fmt.Println("✅ Producer closed channel")
+	}()
+
+	received := []int{}
+	for val := range rangeChannel {
+		received = append(received, val)
+	}
+
+	if len(received) == 3 {
+		fmt.Printf("✅ Range loop ended correctly, received: %v\n", received)
+	} else {
+		fmt.Printf("❌ Expected 3 values, got %d: %v\n", len(received), received)
+	}
+
+	// 4. TEST DOUBLE CLOSE (PANIC SCENARIO)
+	fmt.Println("\n🚨 Testing double close protection:")
+	testChannel := make(chan int)
+
+	// First close
+	close(testChannel)
+	fmt.Println("✅ First close successful")
+
+	// Try to detect if already closed before second close
+	select {
+	case _, ok := <-testChannel:
+		if !ok {
+			fmt.Println("✅ Channel already closed - avoiding double close")
+		}
+	default:
+		fmt.Println("⚠️ Channel state unclear")
+	}
+
+	// 5. TEST PIPELINE CLOSURE PROPAGATION
+	fmt.Println("\n🔗 Testing pipeline closure propagation:")
+	input := make(chan int)
+	output := make(chan int)
+
+	// Simple processor
+	go func() {
+		defer close(output)
+		for val := range input {
+			output <- val * 2
+		}
+		fmt.Println("✅ Processor closed output after input closed")
+	}()
+
+	// Send data and close input
+	go func() {
+		input <- 5
+		input <- 10
+		close(input)
+		fmt.Println("✅ Producer closed input")
+	}()
+
+	// Collect results with timeout
+	results := []int{}
+	timeout := time.After(100 * time.Millisecond)
+
+	for {
+		select {
+		case val, ok := <-output:
+			if !ok {
+				fmt.Printf("✅ Pipeline completed, results: %v\n", results)
+				return
+			}
+			results = append(results, val)
+		case <-timeout:
+			fmt.Println("❌ Pipeline test timed out!")
+			return
+		}
+	}
 }
 
 func main() {
 	fmt.Println("🔒 Go Concurrency: Channel Closing")
 
 	// Build understanding of resource management
-	demonstrateBasicClosing()
+	// demonstrateBasicClosing()
 	// demonstrateCommaOkIdiom()
 	// demonstrateRangeWithClosure()
 	// demonstrateSenderCloses()
 	// demonstrateSafeClosing()
 	// demonstrateDeferClosing()
-	// demonstrateClosurePropagation()
+	demonstrateClosurePropagation()
 	// demonstrateClosureTesting()
 
 	fmt.Println("\n✅ Channel closing fundamentals complete!")
