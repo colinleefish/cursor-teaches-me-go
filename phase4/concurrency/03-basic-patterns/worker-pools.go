@@ -218,11 +218,13 @@ func demonstrateDynamicWorkerPool() {
 // TODO: Demonstrate proper worker pool shutdown
 func demonstrateWorkerPoolShutdown() {
 	fmt.Println("\n=== Worker Pool Shutdown ===")
+	fmt.Println("\nhave implemented this in other examples")
 	// TODO: Show graceful shutdown signal handling
 	// TODO: Stop accepting new jobs while preserving existing queue
 	// TODO: Allow workers to finish current jobs
 	// TODO: Implement timeout-based forced shutdown
 	// TODO: Show proper resource cleanup and job accounting
+
 }
 
 // TUTOR: Worker pool error handling requires error aggregation patterns.
@@ -262,15 +264,66 @@ func demonstrateWorkerPoolMonitoring() {
 // Understanding worker pools enables building high-performance applications.
 // Proper implementation prevents common concurrency pitfalls.
 // Worker pools are essential for production Go programming.
-// TODO: Show real-world worker pool applications
 func demonstrateRealWorldWorkerPools() {
-	fmt.Println("\n=== Real-World Worker Pool Applications ===")
+	fmt.Println("\n=== Web Server Worker Pool ===")
 
-	// TODO: Show web server request processing worker pool
-	// TODO: Demonstrate batch data processing worker pool
-	// TODO: Show file processing worker pool with different job types
-	// TODO: Illustrate API rate limiting with worker pools
-	// TODO: Show integration with external systems and databases
+	// Request represents an HTTP request to process
+	type Request struct {
+		ID   int
+		Path string
+		Done chan string
+	}
+
+	// Create request channel (buffer prevents blocking)
+	requests := make(chan Request, 100)
+
+	// Start 3 worker goroutines
+	for i := 1; i <= 3; i++ {
+		go func(workerID int) {
+			for req := range requests {
+				// Simulate request processing (database query, etc.)
+				fmt.Printf("Worker %d processing request %d: %s\n",
+					workerID, req.ID, req.Path)
+
+				time.Sleep(time.Millisecond * 100) // Simulate work
+
+				// Send response back
+				req.Done <- fmt.Sprintf("Response from worker %d for %s",
+					workerID, req.Path)
+			}
+		}(i)
+	}
+
+	// Simulate incoming HTTP requests
+	var wg sync.WaitGroup
+
+	paths := []string{"/users", "/orders", "/products", "/health", "/metrics"}
+
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(requestID int) {
+			defer wg.Done()
+
+			// Create request
+			req := Request{
+				ID:   requestID,
+				Path: paths[requestID%len(paths)],
+				Done: make(chan string),
+			}
+
+			// Send to worker pool
+			requests <- req
+
+			// Wait for response
+			response := <-req.Done
+			fmt.Printf("Request %d completed: %s\n", requestID, response)
+		}(i)
+	}
+
+	wg.Wait()
+	close(requests)
+
+	fmt.Println("All requests processed!")
 }
 
 func main() {
@@ -284,9 +337,9 @@ func main() {
 	// demonstrateWorkerPoolSizing()
 	// demonstrateJobQueueBuffering()
 	// demonstrateWorkerSpecialization()
-	demonstrateDynamicWorkerPool()
+	// demonstrateDynamicWorkerPool()
 	// demonstrateWorkerPoolShutdown()
 	// demonstrateWorkerPoolErrorHandling()
 	// demonstrateWorkerPoolMonitoring()
-	// demonstrateRealWorldWorkerPools()
+	demonstrateRealWorldWorkerPools()
 }

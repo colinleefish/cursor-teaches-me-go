@@ -105,7 +105,7 @@ This curriculum follows a strict dependency order - each level builds on the pre
 
 - [x] **3.1 Producer-Consumer** ✅
 - [x] **3.2 Worker Pools** ✅
-- [ ] **3.3 Pipeline**
+- [x] **3.3 Pipeline** ✅
 - [ ] **3.4 Bounded Parallelism**
 
 ### Level 4: Advanced Patterns (Complex Compositions)
