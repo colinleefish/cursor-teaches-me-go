@@ -106,14 +106,14 @@ This curriculum follows a strict dependency order - each level builds on the pre
 - [x] **3.1 Producer-Consumer** ✅
 - [x] **3.2 Worker Pools** ✅
 - [x] **3.3 Pipeline** ✅
-- [ ] **3.4 Bounded Parallelism**
+- [x] **3.4 Bounded Parallelism** ✅
 
 ### Level 4: Advanced Patterns (Complex Compositions)
 
-- [ ] **4.1 Fan-In**
-- [ ] **4.2 Fan-Out**
-- [ ] **4.3 Timeout & Cancellation**
-- [ ] **4.4 Request-Response**
+- [x] **4.1 Fan-In** ✅
+- [x] **4.2 Fan-Out** ✅
+- [x] **4.3 Timeout & Cancellation** ✅
+- [x] **4.4 Request-Response** ✅
 
 ### Level 5: Resilience Patterns (Production-Ready)
 

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"math/rand"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -40,6 +44,28 @@ func demonstrateBasicSemaphore() {
 	// TODO: Show tasks waiting for semaphore availability
 	// TODO: Demonstrate controlled concurrent execution
 	// TODO: Show proper semaphore release after task completion
+
+	capacity := 3
+	jobs := 100
+	semaphore := make(chan struct{}, capacity)
+
+	// wg := sync.WaitGroup{}
+	jobStartWg := sync.WaitGroup{}
+
+	for i := 0; i < jobs; i++ {
+		semaphore <- struct{}{}
+		jobStartWg.Add(1)
+		go func(i int) {
+			defer jobStartWg.Done()
+			fmt.Println("job", i, "started")
+			time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+			fmt.Println("job", i, "completed")
+			<-semaphore
+		}(i)
+	}
+
+	jobStartWg.Wait()
+
 }
 
 // TUTOR: Worker pool semaphores limit active workers instead of total workers.
@@ -67,11 +93,48 @@ func demonstrateWorkerSemaphore() {
 func demonstrateRateLimiting() {
 	fmt.Println("\n=== Rate Limiting with Bounded Parallelism ===")
 
-	// TODO: Implement token bucket rate limiting
-	// TODO: Combine rate limiting with concurrency limits
-	// TODO: Show protection of external service rate limits
-	// TODO: Demonstrate burst handling within rate limits
-	// TODO: Show monitoring of rate limit utilization
+	// Rate limiting setup
+	requestsPerSecond := 5
+	maxConcurrent := 2
+	totalRequests := 20
+
+	// TODO: Create rate limiter (time.NewTicker)
+	rateLimiter := time.NewTicker(time.Second / time.Duration(requestsPerSecond))
+	defer rateLimiter.Stop()
+
+	// TODO: Create semaphore for concurrency limiting
+	semaphore := make(chan struct{}, maxConcurrent)
+
+	var wg sync.WaitGroup
+
+	start := time.Now()
+
+	for i := 0; i < totalRequests; i++ {
+		// TODO: Wait for rate limit token
+		<-rateLimiter.C
+
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+
+			// TODO: Acquire semaphore (concurrency limit)
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+
+			// TODO: Simulate API request work
+			fmt.Printf("[%v] Request %d started (concurrent slots used)\n",
+				time.Since(start).Round(100*time.Millisecond), id)
+
+			// TODO: Add work simulation
+			time.Sleep(time.Duration(rand.Intn(800)+200) * time.Millisecond)
+
+			fmt.Printf("[%v] Request %d completed\n",
+				time.Since(start).Round(100*time.Millisecond), id)
+		}(i)
+	}
+
+	wg.Wait()
+	fmt.Printf("Total time: %v\n", time.Since(start).Round(100*time.Millisecond))
 }
 
 // TUTOR: Resource pools manage limited shared resources efficiently.
@@ -80,6 +143,9 @@ func demonstrateRateLimiting() {
 // Resource acquisition and release must be carefully managed.
 // Proper pooling prevents resource exhaustion and improves performance.
 // TODO: Demonstrate resource pool management
+
+type DBConn struct{ connID int }
+
 func demonstrateResourcePooling() {
 	fmt.Println("\n=== Resource Pool Management ===")
 
@@ -88,6 +154,42 @@ func demonstrateResourcePooling() {
 	// TODO: Demonstrate resource reuse across multiple operations
 	// TODO: Show proper resource cleanup and pool shutdown
 	// TODO: Illustrate pool utilization monitoring
+
+	poolCount := 3
+	jobCount := 50
+
+	// build connection pool
+	pool := make(chan *DBConn, poolCount)
+	for i := 0; i < poolCount; i++ {
+		pool <- &DBConn{connID: i}
+	}
+
+	jobs := make(chan int, jobCount)
+	for j := 0; j < jobCount; j++ {
+		jobs <- j
+	}
+
+	close(jobs)
+
+	var wg sync.WaitGroup
+	// start exactly poolCount workers
+	wg.Add(poolCount)
+	for w := 0; w < poolCount; w++ {
+		go rpWorker(w, jobs, pool, &wg)
+	}
+	wg.Wait()
+
+	close(pool)
+}
+
+func rpWorker(w int, jobs <-chan int, pool chan *DBConn, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for j := range jobs {
+		dbConn := <-pool
+		fmt.Println("using db conn: ", dbConn.connID, "worker: ", w, "job: ", j)
+		time.Sleep(time.Millisecond * 100)
+		pool <- dbConn
+	}
 }
 
 // TUTOR: Adaptive parallelism adjusts concurrency based on system conditions.
@@ -104,6 +206,99 @@ func demonstrateAdaptiveParallelism() {
 	// TODO: Show automatic scaling up during low load
 	// TODO: Demonstrate scaling down during high load
 	// TODO: Show metrics-driven concurrency decisions
+
+	// fake metrics that jumps from 0 to 100, 0 is idle and 100 is max load, update every 1 second
+	// don't have to use channel, just assign value to a variable
+
+	doTheJob := func(jobId int) {
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
+		fmt.Println("job", jobId, "completed")
+	}
+
+	jobCount := 200
+
+	metrics := int32(0)
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+		for {
+			<-ticker.C
+			atomic.StoreInt32(&metrics, rand.Int31n(100))
+		}
+	}()
+
+	jobCh := make(chan int, jobCount)
+	for i := 0; i < jobCount; i++ {
+		jobCh <- i
+	}
+	close(jobCh)
+
+	// Worker management
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	activeWorkers := int32(0)
+	var wg sync.WaitGroup
+
+	// TODO: Scale workers based on metrics (11 - metrics/10)
+	go func() {
+		ticker := time.NewTicker(2 * time.Second) // Check every 2 seconds
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				currentMetrics := atomic.LoadInt32(&metrics)
+				desiredWorkers := 11 - int(currentMetrics/10)
+				if desiredWorkers < 1 {
+					desiredWorkers = 1
+				}
+
+				current := int(atomic.LoadInt32(&activeWorkers))
+				fmt.Printf("Metrics: %d, Current workers: %d, Desired: %d\n",
+					currentMetrics, current, desiredWorkers)
+
+				// TODO: Scale up - add workers
+				if desiredWorkers > current {
+					for i := current; i < desiredWorkers; i++ {
+						atomic.AddInt32(&activeWorkers, 1)
+						wg.Add(1)
+						go worker(ctx, jobCh, doTheJob, &activeWorkers, &wg)
+					}
+				}
+
+				// TODO: Scale down - workers will exit on context cancellation
+				// (This is tricky - need coordination between workers)
+				if desiredWorkers < current {
+					fmt.Println("scaling down from", current, "to", desiredWorkers)
+					fmt.Println("Do nothing at the moment")
+				}
+
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	// TODO: Wait for all jobs completion
+	wg.Wait()
+}
+
+func worker(ctx context.Context, jobs <-chan int, doJob func(int), activeWorkers *int32, wg *sync.WaitGroup) {
+	defer wg.Done()
+	defer atomic.AddInt32(activeWorkers, -1)
+
+	for {
+		select {
+		case jobId, ok := <-jobs:
+			if !ok {
+				return // Channel closed
+			}
+			doJob(jobId)
+		case <-ctx.Done():
+			return // Context cancelled (scaling down)
+		}
+	}
 }
 
 // TUTOR: Priority-based bounded parallelism reserves capacity for important work.
@@ -197,7 +392,7 @@ func main() {
 	// demonstrateWorkerSemaphore()
 	// demonstrateRateLimiting()
 	// demonstrateResourcePooling()
-	// demonstrateAdaptiveParallelism()
+	demonstrateAdaptiveParallelism()
 	// demonstratePriorityBounding()
 	// demonstrateTimeoutBounding()
 	// demonstrateCircuitBreakerBounding()
