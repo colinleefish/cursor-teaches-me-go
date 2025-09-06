@@ -8,7 +8,7 @@ import (
 )
 
 type Actor struct {
-	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey"`
 	Name      string         `json:"name" gorm:"not null"`
 	BirthDate *time.Time     `json:"birth_date"`
 	Biography string         `json:"biography" gorm:"type:text"`

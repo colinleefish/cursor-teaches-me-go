@@ -8,7 +8,7 @@ import (
 )
 
 type Movie struct {
-	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey"`
 	Title       string         `json:"title" gorm:"not null"`
 	Year        int            `json:"year"`
 	Director    string         `json:"director"`
